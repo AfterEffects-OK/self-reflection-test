@@ -1,0 +1,1817 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>くりかえしテスト</title>
+    <link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+P+One&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif; /* 一般的なテキストに適用 */
+            background-color: #F8FAFC; /* Softer, light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .quiz-container {
+            background-color: #ffffff;
+            padding: 2.5rem; /* Increased padding */
+            border-radius: 2rem; /* さらに丸く */
+            /* Enhanced shadow for a more premium look */
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08), 0 5px 15px rgba(0, 0, 0, 0.05);
+            width: 90%; /* Use a fluid width */
+            max-width: 500px; /* Default max-width for small screens */
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem; /* Increased gap between elements */
+            position: relative; /* For z-index if needed, but confetti is global */
+            z-index: 1; /* Ensure quiz content is above confetti container */
+        }
+
+        /* Medium screens (e.g., tablets) */
+        @media (min-width: 768px) {
+            .quiz-container {
+                max-width: 700px; /* Wider for tablets */
+            }
+        }
+
+        /* Large screens (e.g., desktops) */
+        @media (min-width: 1024px) {
+            .quiz-container {
+                max-width: 900px; /* Even wider for desktops */
+            }
+        }
+
+        /* Extra large screens */
+        @media (min-width: 1280px) {
+            .quiz-container {
+                max-width: 1100px; /* Max width for very large screens */
+            }
+        }
+
+        .app-title {
+            font-family: 'Mochiy Pop P One', sans-serif; /* タイトルに新しいフォントを適用 */
+            font-size: 1.75rem; /* Default for mobile */
+            font-weight: 800; /* Extra bold */
+            color: #60A5FA; /* 白に近い青色に変更 */
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.05em; /* Wider letter spacing */
+            /* テキストの外側に向けて太めのエッジを表現 */
+            text-shadow:
+                -0.5px -0.5px 0 #2563EB,
+                0.5px -0.5px 0 #2563EB,
+                -0.5px 0.5px 0 #2563EB,
+                0.5px 0.5px 0 #2563EB,
+                -0.75px 0px 0 #2563EB,
+                0.75px 0px 0 #2563EB,
+                0px -0.75px 0 #2563EB,
+                0px 0.75px 0 #2563EB;
+        }
+
+        /* Adjustments for larger screens */
+        @media (min-width: 768px) {
+            .app-title {
+                font-size: 2.5rem; /* Larger for tablets */
+                text-shadow:
+                    -1px -1px 0 #2563EB,
+                    1px -1px 0 #2563EB,
+                    -1px 1px 0 #2563EB,
+                    1px 1px 0 #2563EB,
+                    -1.5px 0px 0 #2563EB,
+                    1.5px 0px 0 #2563EB,
+                    0px -1.5px 0 #2563EB,
+                    0px 1.5px 0 #2563EB;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .app-title {
+                font-size: 3.5rem; /* Even larger for desktops */
+                text-shadow:
+                    -2px -2px 0 #2563EB,
+                    2px -2px 0 #2563EB,
+                    -2px 2px 0 #2563EB,
+                    2px 2px 0 #2563EB,
+                    -3px 0px 0 #2563EB,
+                    3px 0px 0 #2563EB,
+                    0px -3px 0 #2563EB,
+                    0px 3px 0 #2563EB;
+            }
+        }
+
+        .section-title {
+            font-size: 1.2rem; /* Default for mobile (smaller) */
+            font-weight: 700;
+            color: #1F2937; /* Darker title text */
+            margin-bottom: 1.5rem;
+        }
+
+        /* Adjustments for larger screens (PC) */
+        @media (min-width: 768px) {
+            .section-title {
+                font-size: 1.5rem; /* Keep current size for PC */
+            }
+        }
+
+        .question-text {
+            font-size: 1.5rem; /* Larger question text */
+            font-weight: 600;
+            color: #334155; /* Darker text for question */
+            margin-bottom: 1.5rem;
+        }
+        .question-image {
+            max-width: 100%;
+            height: auto;
+            max-height: 200px; /* Limit height for question images */
+            object-fit: contain;
+            margin: 1rem auto;
+            border-radius: 1rem; /* さらに丸く */
+        }
+        .choices-container button {
+            display: flex; /* Use flexbox for alignment */
+            align-items: center; /* Vertically center items */
+            width: 100%;
+            padding: 1rem 1.5rem; /* Larger buttons */
+            margin-bottom: 0.75rem; /* More space between choices */
+            background-color: #F1F5F9; /* Softer light gray for choices */
+            color: #4B5563; /* Darker gray text */
+            border: 2px solid #E2E8F0; /* Subtle border */
+            border-radius: 1.5rem; /* さらに丸く */
+            font-size: 1.1rem; /* Larger font for choices */
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            text-align: left; /* Align text to left */
+        }
+        .choice-image {
+            width: 60px; /* Smaller image for choices */
+            height: 60px;
+            object-fit: cover; /* Crop image to fit */
+            margin-right: 1rem;
+            border-radius: 1rem; /* さらに丸く */
+            flex-shrink: 0; /* Prevent image from shrinking */
+        }
+        .choices-container button span {
+            flex-grow: 1; /* Allow text to take remaining space */
+        }
+        .choices-container button:hover {
+            background-color: #E2E8F0; /* Lighter hover */
+            border-color: #CBD5E1;
+        }
+        .choices-container button.selected {
+            background-color: #DBEAFE; /* Light blue when selected */
+            border-color: #60A5FA; /* Blue border when selected */
+            color: #1E40AF; /* Dark blue text when selected */
+        }
+        .choices-container button.correct {
+            background-color: #D1FAE5; /* Light green for correct */
+            border-color: #34D399; /* Green border */
+            color: #065F46; /* Dark green text */
+        }
+        .choices-container button.incorrect {
+            background-color: #FEE2E2; /* Light red for incorrect */
+            border-color: #EF4444; /* Red border */
+            color: #991B1B; /* Dark red text */
+        }
+        .feedback-message {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-top: 1rem;
+            min-height: 28px; /* Ensure space even when empty */
+            padding: 0.75rem 1.5rem; /* Added padding */
+            border-radius: 1.5rem; /* さらに丸く */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem; /* Space between icon and text */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+        }
+        .feedback-message.correct {
+            color: #065F46; /* Dark green text */
+            background-color: #D1FAE5; /* Light green background */
+            border: 2px solid #34D399; /* Green border */
+            box-shadow: 0 4px 8px rgba(52, 211, 153, 0.2);
+        }
+        .feedback-message.incorrect {
+            color: #991B1B; /* Dark red text */
+            background-color: #FEE2E2; /* Light red background */
+            border: 2px solid #EF4444; /* Red border */
+            box-shadow: 0 4px 8px rgba(239, 68, 68, 0.2);
+        }
+        .action-button {
+            background-color: #3B82F6; /* Blue button */
+            color: white;
+            padding: 1rem 2rem; /* Larger button */
+            border-radius: 1.5rem; /* さらに丸く */
+            font-size: 1rem; /* Default smaller font for mobile */
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            border: none;
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); /* Button shadow */
+        }
+        /* Adjustments for larger screens (PC) */
+        @media (min-width: 768px) {
+            .action-button {
+                font-size: 1.2rem; /* Keep current size for PC */
+            }
+        }
+        .action-button:hover {
+            background-color: #2563EB; /* Darker blue on hover */
+            transform: translateY(-2px); /* Slight lift on hover */
+        }
+        .action-button:active {
+            transform: translateY(0); /* Press effect */
+        }
+        .score-display {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #334155;
+            margin-top: 1.5rem;
+        }
+        .result-item {
+            background-color: #F8FAFC; /* Very light background for result items */
+            padding: 1rem;
+            border-radius: 1rem; /* さらに丸く */
+            margin-bottom: 0.75rem;
+            text-align: left;
+            border: 1px solid #E2E8F0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .result-item p {
+            margin-bottom: 0; /* Remove default margin */
+        }
+        .result-item .question {
+            font-weight: 600;
+            color: #334155;
+        }
+        .result-item .your-answer,
+        .result-item .correct-answer {
+            font-weight: 500;
+            color: #4B5563;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .result-item .correct-answer {
+            color: #10B981; /* Green for correct answer */
+        }
+        .result-item.incorrect-attempt .your-answer {
+            color: #EF4444; /* Red for incorrect attempt */
+        }
+        .result-item-image {
+            width: 40px; /* Smaller images in results */
+            height: 40px;
+            object-fit: cover;
+            border-radius: 0.75rem; /* さらに丸く */
+        }
+        .subject-buttons-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* Responsive grid */
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .subject-button {
+            background-color: #60A5FA; /* Blue for subject buttons */
+            color: white;
+            padding: 1rem;
+            border-radius: 1.5rem; /* さらに丸く */
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            border: none;
+            box-shadow: 0 4px 10px rgba(96, 165, 250, 0.3);
+        }
+        .subject-button:hover {
+            background-color: #3B82F6;
+            transform: translateY(-2px);
+        }
+        .add-question-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            text-align: left;
+        }
+        .add-question-form label {
+            font-weight: 600;
+            color: #4B5563;
+            margin-bottom: 0.25rem;
+            display: block;
+        }
+        .add-question-form input[type="text"],
+        .add-question-form select {
+            padding: 0.75rem;
+            border: 1px solid #CBD5E1;
+            border-radius: 1rem; /* さらに丸く */
+            font-size: 1rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .add-question-form textarea {
+            padding: 0.75rem;
+            border: 1px solid #CBD5E1;
+            border-radius: 1rem; /* さらに丸く */
+            font-size: 1rem;
+            width: 100%;
+            box-sizing: border-box;
+            min-height: 80px;
+            resize: vertical;
+        }
+        .add-question-form .input-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .add-question-form .input-group input {
+            flex-grow: 1;
+        }
+        .add-question-form .incorrect-choices-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            border: 1px dashed #CBD5E1;
+            padding: 0.75rem;
+            border-radius: 1rem; /* さらに丸く */
+        }
+        /* Adjusted for new structure */
+        .add-question-form .incorrect-choice-item {
+            display: flex;
+            justify-content: space-between; /* Pushes content and buttons to ends */
+            align-items: center;
+            gap: 0.5rem; /* Gap between the two main flex items */
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #E2E8F0;
+        }
+        .add-question-form .incorrect-choice-item:last-child {
+            border-bottom: none;
+        }
+        .add-question-form .incorrect-choice-item > div:first-child { /* The content wrapper */
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-grow: 1; /* Allow content to take available space */
+        }
+        .add-question-form .incorrect-choice-item > div:last-child { /* The button wrapper */
+            display: flex;
+            align-items: center;
+            gap: 0.5rem; /* Gap between buttons */
+            flex-shrink: 0; /* Prevent buttons from shrinking */
+        }
+        .add-question-form .incorrect-choice-item span {
+            /* flex-grow: 1; No longer needed here, handled by parent div */
+        }
+        /* New styles for list action buttons */
+        .list-action-button {
+            color: white;
+            padding: 0.4rem 0.8rem; /* Slightly larger padding */
+            border-radius: 1rem; /* さらに丸く */
+            font-size: 0.9rem; /* Slightly larger font */
+            cursor: pointer;
+            border: none;
+            flex-shrink: 0;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); /* Subtle shadow */
+        }
+        .list-action-button:hover {
+            transform: translateY(-1px); /* Slight lift on hover */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Stronger shadow on hover */
+        }
+        .list-action-button:active {
+            transform: translateY(0); /* Press effect */
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .list-action-button.edit-button {
+            background-color: #3B82F6; /* Blue for edit */
+        }
+        .list-action-button.edit-button:hover {
+            background-color: #2563EB;
+        }
+
+        .list-action-button.delete-button {
+            background-color: #EF4444; /* Red for delete */
+        }
+        .list-action-button.delete-button:hover {
+            background-color: #DC2626;
+        }
+
+        /* Styles for save/cancel buttons in incorrect choices input group */
+        .save-choice-button {
+            background-color: #22C55E; /* Green for save/add */
+            color: white;
+            padding: 0.6rem 1.2rem; /* Larger padding */
+            border-radius: 1.5rem; /* さらに丸く */
+            font-size: 1rem; /* Standard font size */
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-shadow: 0 4px 10px rgba(34, 197, 94, 0.3); /* Green shadow */
+        }
+        .save-choice-button:hover {
+            background-color: #16A34A;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(34, 197, 94, 0.4);
+        }
+        .save-choice-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(34, 197, 94, 0.2);
+        }
+
+        .cancel-choice-button {
+            background-color: #6B7280; /* Gray for cancel */
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 1.5rem; /* さらに丸く */
+            font-size: 1rem;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-shadow: 0 4px 10px rgba(107, 114, 128, 0.3); /* Gray shadow */
+        }
+        .cancel-choice-button:hover {
+            background-color: #4B5563;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(107, 114, 128, 0.4);
+        }
+        .cancel-choice-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(107, 114, 128, 0.2);
+        }
+
+
+        .add-question-list {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border: 1px dashed #CBD5E1;
+            border-radius: 1rem; /* さらに丸く */
+            background-color: #F8FAFC;
+        }
+        .add-question-list-item {
+            display: flex;
+            justify-content: space-between; /* This will push content and buttons apart */
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #E2E8F0;
+        }
+        .add-question-list-item:last-child {
+            border-bottom: none;
+        }
+        .hidden {
+            display: none;
+        }
+        .timer-display {
+            font-size: 1.8rem; /* Larger timer font */
+            font-weight: 700;
+            color: #DC2626; /* Red color for timer */
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        /* Confetti styles */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 9999; /* Ensure confetti is on top of everything */
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f00; /* Default color, will be randomized */
+            opacity: 0;
+            animation: confetti-fall 3s ease-out forwards;
+            border-radius: 50%; /* Make them round */
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100px) rotateZ(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotateZ(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* Corner Login Button Style */
+        .corner-login-button {
+            position: absolute;
+            top: 1rem; /* Adjust as needed */
+            right: 1rem; /* Adjust as needed */
+            background-color: #F3F4F6; /* Even brighter gray (Tailwind gray-100) */
+            color: #FFFFFF; /* White text */
+            padding: 0.15rem 0.3rem; /* Even smaller padding */
+            border-radius: 0.75rem; /* さらに丸く */
+            font-size: 0.6rem; /* Even smaller font size */
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.2s ease-in-out;
+            z-index: 10; /* Ensure it's above other elements */
+        }
+
+        .corner-login-button:hover {
+            background-color: #E5E7EB; /* Darker gray on hover (Tailwind gray-200) */
+        }
+
+        /* 一番下のボタンの下に空白を追加 */
+        /* 問題セクションの「回答する/次の問題へ」ボタンの下に空白を追加 */
+        #question-section #next-button {
+            margin-bottom: 5rem; /* 5行分の空白を想定して調整 */
+        }
+
+        /* 結果セクションの最後のボタンの下にマージンを追加 */
+        #result-section #back-to-subjects-button {
+            margin-bottom: 5rem; /* 5行分の空白を想定して調整 */
+        }
+
+        /* 問題追加・編集セクションの最後のボタンの下に空白を追加 */
+        #add-edit-question-section #back-from-add-question-button {
+            margin-bottom: 5rem; /* 5行分の空白を想定して調整 */
+        }
+    </style>
+</head>
+<body>
+    <div id="confetti-container" class="confetti-container"></div>
+    <div id="quiz-app" class="quiz-container">
+        <h1 class="app-title">くりかえしテスト</h1>
+
+        <div id="login-section" class="hidden">
+            <p class="section-title">ログイン</p>
+            <div class="flex flex-col items-center gap-4">
+                <input type="text" id="user-id-input" placeholder="ユーザーIDを入力" class="w-full max-w-xs p-3 border border-gray-300 rounded-lg text-lg">
+                <button id="login-button" class="action-button w-full max-w-xs">ログイン</button>
+            </div>
+            <button id="back-from-login-button" class="action-button mt-4 bg-gray-500 hover:bg-gray-600">戻る</button>
+        </div>
+
+        <div id="subject-selection-section" class="hidden">
+            <button id="corner-login-button" class="corner-login-button">ログイン</button>
+            <p class="section-title">科目を選択してください</p>
+            <div id="subject-buttons-container" class="subject-buttons-container">
+                </div>
+            <button id="go-to-add-question-button" class="action-button mt-4">問題を追加・編集</button>
+            <button id="logout-button" class="action-button mt-4 bg-gray-500 hover:bg-gray-600 hidden">ログアウト</button>
+        </div>
+
+        <div id="question-section" class="hidden">
+            <div id="timer-display" class="timer-display">03:00</div>
+            <img id="question-image" class="question-image hidden" alt="問題画像">
+            <p id="question-text" class="question-text">問題文がここに表示されます。</p>
+            <div id="choices-container" class="choices-container">
+                </div>
+            <p id="feedback-message" class="feedback-message"></p>
+            <button id="next-button" class="action-button mt-6">回答する</button>
+        </div>
+
+        <div id="result-section" class="hidden">
+            <p id="final-score" class="score-display">あなたのスコア: 0 / 5</p>
+            <div id="results-details-container" class="mt-4">
+                </div>
+            <button id="restart-button" class="action-button mt-6">もう一度テストする</button>
+            <button id="back-to-subjects-button" class="action-button mt-4">科目選択に戻る</button>
+        </div>
+
+        <div id="add-edit-question-section" class="hidden">
+            <p class="section-title">問題の追加・編集</p>
+            <div class="add-question-form">
+                <label for="add-question-subject-select">科目:</label>
+                <select id="add-question-subject-select" class="w-full p-2 border rounded">
+                    </select>
+
+                <label for="new-subject-name" class="mt-2">新しい科目名 (既存の科目を選択しない場合):</label>
+                <input type="text" id="new-subject-name" placeholder="例: 歴史" class="w-full p-2 border rounded">
+
+                <div id="existing-questions-list-container" class="mt-4">
+                    <p class="font-bold text-gray-700 mb-2">既存の問題:</p>
+                    <div id="existing-questions-list" class="add-question-list">
+                        </div>
+                    <button id="clear-form-button" class="action-button mt-4 bg-gray-500 hover:bg-gray-600">新規問題作成</button>
+                </div>
+
+                <label for="add-question-text" class="mt-4">問題文:</label>
+                <textarea id="add-question-text" placeholder="例: 日本の首都はどこですか？"></textarea>
+                <label for="add-question-image-url">問題画像URL (任意):</label>
+                <input type="text" id="add-question-image-url" placeholder="例: https://example.com/question.jpg">
+
+                <label for="add-correct-answer">正解:</label>
+                <input type="text" id="add-correct-answer" placeholder="例: 東京">
+                <label for="add-correct-answer-image-url">正解画像URL (任意):</label>
+                <input type="text" id="add-correct-answer-image-url" placeholder="例: https://example.com/correct.jpg">
+
+                <label for="add-incorrect-choice-text">不正解 (20個まで追加可能):</label>
+                <div class="incorrect-choices-input-group">
+                    <div class="input-group">
+                        <input type="text" id="incorrect-choice-text-input" placeholder="不正解のテキスト">
+                        <input type="text" id="incorrect-choice-image-input" placeholder="画像URL (任意)">
+                        <button id="save-incorrect-choice-button" class="save-choice-button">追加</button>
+                        <button id="cancel-incorrect-choice-edit-button" class="cancel-choice-button hidden">キャンセル</button>
+                    </div>
+                    <div id="current-incorrect-choices-display" class="add-question-list">
+                        </div>
+                </div>
+                <button id="save-question-button" class="action-button mt-4">問題を保存</button>
+            </div>
+            <button id="back-from-add-question-button" class="action-button mt-6">科目選択に戻る</button>
+        </div>
+    </div>
+
+    <script>
+        // 問題データ構造: 科目ごとに問題を管理
+        // 各問題は 'question', 'questionImage', 'correctAnswer', 'incorrectChoices' を持つ
+        // correctAnswer は { text: string, image: string } 形式
+        // incorrectChoices は { text: string, image: string } の配列
+        let quizDataBySubject = {
+            "国語": [
+                {
+                    question: "夏目漱石の代表作は何ですか？",
+                    questionImage: "https://placehold.co/150x100/E0F2F7/000?text=夏目漱石",
+                    correctAnswer: { text: "吾輩は猫である", image: "https://placehold.co/80x50/D1FAE5/000?text=吾輩は猫である" },
+                    incorrectChoices: [
+                        { text: "坊っちゃん", image: "https://placehold.co/80x50/FEE2E2/000?text=坊っちゃん" },
+                        { text: "こころ", image: "https://placehold.co/80x50/FEE2E2/000?text=こころ" },
+                        { text: "草枕", image: "https://placehold.co/80x50/FEE2E2/000?text=草枕" },
+                        { text: "雪国", image: "https://placehold.co/80x50/FEE2E2/000?text=雪国" },
+                        { text: "羅生門", image: "https://placehold.co/80x50/FEE2E2/000?text=羅生門" },
+                        { text: "三四郎", image: "" },
+                        { text: "それから", image: "" },
+                        { text: "門", image: "" }
+                    ]
+                },
+                {
+                    question: "「徒然草」の作者は誰ですか？",
+                    questionImage: "",
+                    correctAnswer: { text: "吉田兼好", image: "https://placehold.co/80x50/D1FAE5/000?text=吉田兼好" },
+                    incorrectChoices: [
+                        { text: "清少納言", image: "https://placehold.co/80x50/FEE2E2/000?text=清少納言" },
+                        { text: "紫式部", image: "https://placehold.co/80x50/FEE2E2/000?text=紫式部" },
+                        { text: "鴨長明", image: "https://placehold.co/80x50/FEE2E2/000?text=鴨長明" },
+                        { text: "紀貫之", image: "https://placehold.co/80x50/FEE2E2/000?text=紀貫之" },
+                        { text: "兼好法師", image: "" },
+                        { text: "空海", image: "" },
+                        { text: "最澄", image: "" },
+                        { text: "源氏物語", image: "" }
+                    ]
+                },
+                {
+                    question: "俳句の季語は、何を表現するために使われますか？",
+                    questionImage: "",
+                    correctAnswer: { text: "季節", image: "https://placehold.co/80x50/D1FAE5/000?text=季節" },
+                    incorrectChoices: [
+                        { text: "感情", image: "https://placehold.co/80x50/FEE2E2/000?text=感情" },
+                        { text: "場所", image: "https://placehold.co/80x50/FEE2E2/000?text=場所" },
+                        { text: "時間", image: "https://placehold.co/80x50/FEE2E2/000?text=時間" },
+                        { text: "人物", image: "https://placehold.co/80x50/FEE2E2/000?text=人物" },
+                        { text: "天気", image: "" },
+                        { text: "色", image: "" },
+                        { text: "音", image: "" },
+                        { text: "匂い", image: "" }
+                    ]
+                },
+                {
+                    question: "「源氏物語」の主人公の名前は何ですか？",
+                    questionImage: "https://placehold.co/150x100/E0F2F7/000?text=源氏物語",
+                    correctAnswer: { text: "光源氏", image: "https://placehold.co/80x50/D1FAE5/000?text=光源氏" },
+                    incorrectChoices: [
+                        { text: "夕顔", image: "https://placehold.co/80x50/FEE2E2/000?text=夕顔" },
+                        { text: "葵の上", image: "https://placehold.co/80x50/FEE2E2/000?text=葵の上" },
+                        { text: "紫の上", image: "https://placehold.co/80x50/FEE2E2/000?text=紫の上" },
+                        { text: "明石の君", image: "https://placehold.co/80x50/FEE2E2/000?text=明石の君" },
+                        { text: "薫", image: "" },
+                        { text: "宇治十帖", image: "" },
+                        { text: "桐壺", image: "" },
+                        { text: "帚木", image: "" }
+                    ]
+                },
+                {
+                    question: "「枕草子」の作者は誰ですか？",
+                    questionImage: "",
+                    correctAnswer: { text: "清少納言", image: "https://placehold.co/80x50/D1FAE5/000?text=清少納言" },
+                    incorrectChoices: [
+                        { text: "紫式部", image: "https://placehold.co/80x50/FEE2E2/000?text=紫式部" },
+                        { text: "吉田兼好", image: "https://placehold.co/80x50/FEE2E2/000?text=吉田兼好" },
+                        { text: "鴨長明", image: "https://placehold.co/80x50/FEE2E2/000?text=鴨長明" },
+                        { text: "紀貫之", image: "https://placehold.co/80x50/FEE2E2/000?text=紀貫之" },
+                        { text: "小野小町", image: "" },
+                        { text: "和泉式部", image: "" },
+                        { text: "菅原道真", image: "" },
+                        { text: "藤原道長", image: "" }
+                    ]
+                }
+            ],
+            "数学": [
+                {
+                    question: "円周率の近似値は何ですか？",
+                    questionImage: "",
+                    correctAnswer: { text: "3.14", image: "https://placehold.co/80x50/D1FAE5/000?text=3.14" },
+                    incorrectChoices: [
+                        { text: "2.71", image: "https://placehold.co/80x50/FEE2E2/000?text=2.71" },
+                        { text: "1.61", image: "https://placehold.co/80x50/FEE2E2/000?text=1.61" },
+                        { text: "0.57", image: "https://placehold.co/80x50/FEE2E2/000?text=0.57" },
+                        { text: "3.00", image: "https://placehold.co/80x50/FEE2E2/000?text=3.00" },
+                        { text: "4.13", image: "https://placehold.co/80x50/FEE2E2/000?text=4.13" },
+                        { text: "3.14159", image: "" },
+                        { text: "3.1", image: "" },
+                        { text: "3.141", image: "" }
+                    ]
+                },
+                {
+                    question: "正三角形の内角の和は何°ですか？",
+                    questionImage: "https://placehold.co/150x100/E0F2F7/000?text=正三角形",
+                    correctAnswer: { text: "180", image: "https://placehold.co/80x50/D1FAE5/000?text=180°" },
+                    incorrectChoices: [
+                        { text: "90", image: "https://placehold.co/80x50/FEE2E2/000?text=90°" },
+                        { text: "270", image: "https://placehold.co/80x50/FEE2E2/000?text=270°" },
+                        { text: "360", image: "https://placehold.co/80x50/FEE2E2/000?text=360°" },
+                        { text: "45", image: "https://placehold.co/80x50/FEE2E2/000?text=45°" },
+                        { text: "60", image: "" },
+                        { text: "120", image: "" },
+                        { text: "240", image: "" },
+                        { text: "300", image: "" }
+                    ]
+                },
+                {
+                    question: "方程式 $2x + 5 = 11$ の $x$ の値は何ですか？",
+                    questionImage: "",
+                    correctAnswer: { text: "3", image: "https://placehold.co/80x50/D1FAE5/000?text=3" },
+                    incorrectChoices: [
+                        { text: "2", image: "https://placehold.co/80x50/FEE2E2/000?text=2" },
+                        { text: "4", image: "https://placehold.co/80x50/FEE2E2/000?text=4" },
+                        { text: "5", image: "https://placehold.co/80x50/FEE2E2/000?text=5" },
+                        { text: "6", image: "https://placehold.co/80x50/FEE2E2/000?text=6" },
+                        { text: "8", image: "" },
+                        { text: "1", image: "" },
+                        { text: "7", image: "" },
+                        { text: "9", image: "" }
+                    ]
+                },
+                {
+                    question: "直角三角形の最も長い辺の名前は何ですか？",
+                    questionImage: "https://placehold.co/150x100/E0F2F7/000?text=直角三角形",
+                    correctAnswer: { text: "斜辺", image: "https://placehold.co/80x50/D1FAE5/000?text=斜辺" },
+                    incorrectChoices: [
+                        { text: "底辺", image: "https://placehold.co/80x50/FEE2E2/000?text=底辺" },
+                        { text: "高さ", image: "https://placehold.co/80x50/FEE2E2/000?text=高さ" },
+                        { text: "対辺", image: "https://placehold.co/80x50/FEE2E2/000?text=対辺" },
+                        { text: "隣辺", image: "https://placehold.co/80x50/FEE2E2/000?text=隣辺" },
+                        { text: "直角", image: "" },
+                        { text: "頂点", image: "" },
+                        { text: "角", image: "" },
+                        { text: "辺", image: "" }
+                    ]
+                },
+                {
+                    question: "100の平方根は何ですか？",
+                    questionImage: "",
+                    correctAnswer: { text: "10", image: "https://placehold.co/80x50/D1FAE5/000?text=10" },
+                    incorrectChoices: [
+                        { text: "5", image: "https://placehold.co/80x50/FEE2E2/000?text=5" },
+                        { text: "20", image: "https://placehold.co/80x50/FEE2E2/000?text=20" },
+                        { text: "50", image: "https://placehold.co/80x50/FEE2E2/000?text=50" },
+                        { text: "1000", image: "https://placehold.co/80x50/FEE2E2/000?text=1000" },
+                        { text: "1", image: "" },
+                        { text: "25", image: "" },
+                        { text: "75", image: "" },
+                        { text: "100", image: "" }
+                    ]
+                }
+            ],
+            "理科": [
+                {
+                    question: "水が沸騰する温度は何℃ですか？",
+                    questionImage: "",
+                    correctAnswer: { text: "100", image: "https://placehold.co/80x50/D1FAE5/000?text=100℃" },
+                    incorrectChoices: [
+                        { text: "0", image: "https://placehold.co/80x50/FEE2E2/000?text=0℃" },
+                        { text: "50", image: "https://placehold.co/80x50/FEE2E2/000?text=50℃" },
+                        { text: "90", image: "https://placehold.co/80x50/FEE2E2/000?text=90℃" },
+                        { text: "120", image: "https://placehold.co/80x50/FEE2E2/000?text=120℃" },
+                        { text: "200", image: "" },
+                        { text: "25", image: "" },
+                        { text: "75", image: "" },
+                        { text: "150", image: "" }
+                    ]
+                },
+                {
+                    question: "植物が光合成を行うために必要なものは何ですか？",
+                    questionImage: "https://placehold.co/150x100/E0F2F7/000?text=光合成",
+                    correctAnswer: { text: "二酸化炭素", image: "https://placehold.co/80x50/D1FAE5/000?text=二酸化炭素" },
+                    incorrectChoices: [
+                        { text: "酸素", image: "https://placehold.co/80x50/FEE2E2/000?text=酸素" },
+                        { text: "窒素", image: "https://placehold.co/80x50/FEE2E2/000?text=窒素" },
+                        { text: "水", image: "https://placehold.co/80x50/FEE2E2/000?text=水" },
+                        { text: "土", image: "https://placehold.co/80x50/FEE2E2/000?text=土" },
+                        { text: "太陽", image: "" },
+                        { text: "光", image: "" },
+                        { text: "葉緑体", image: "" },
+                        { text: "栄養素", image: "" }
+                    ]
+                },
+                {
+                    question: "地球の自転によって何が起こりますか？",
+                    questionImage: "https://placehold.co/150x100/E0F2F7/000?text=地球",
+                    correctAnswer: { text: "昼と夜", image: "https://placehold.co/80x50/D1FAE5/000?text=昼と夜" },
+                    incorrectChoices: [
+                        { text: "季節の変化", image: "https://placehold.co/80x50/FEE2E2/000?text=季節の変化" },
+                        { text: "月の満ち欠け", image: "https://placehold.co/80x50/FEE2E2/000?text=月の満ち引き" },
+                        { text: "潮の満ち引き", image: "https://placehold.co/80x50/FEE2E2/000?text=潮の満ち引き" },
+                        { text: "地震", image: "https://placehold.co/80x50/FEE2E2/000?text=地震" },
+                        { text: "火山噴火", image: "" },
+                        { text: "台風", image: "" },
+                        { text: "津波", image: "" },
+                        { text: "彗星", image: "" }
+                    ]
+                },
+                {
+                    question: "酸性を示すpHの値は、一般的にどの範囲ですか？",
+                    questionImage: "",
+                    correctAnswer: { text: "7未満", image: "https://placehold.co/80x50/D1FAE5/000?text=pH<7" },
+                    incorrectChoices: [
+                        { text: "7より大きい", image: "https://placehold.co/80x50/FEE2E2/000?text=pH>7" },
+                        { text: "7", image: "https://placehold.co/80x50/FEE2E2/000?text=pH=7" },
+                        { text: "0", image: "https://placehold.co/80x50/FEE2E2/000?text=pH=0" },
+                        { text: "14", image: "https://placehold.co/80x50/FEE2E2/000?text=pH=14" },
+                        { text: "10", image: "" },
+                        { text: "1", image: "" },
+                        { text: "6", image: "" },
+                        { text: "8", image: "" }
+                    ]
+                },
+                {
+                    question: "人体で最も大きな臓器は何ですか？",
+                    questionImage: "",
+                    correctAnswer: { text: "皮膚", image: "https://placehold.co/80x50/D1FAE5/000?text=皮膚" },
+                    incorrectChoices: [
+                        { text: "肝臓", image: "https://placehold.co/80x50/FEE2E2/000?text=肝臓" },
+                        { text: "肺", image: "https://placehold.co/80x50/FEE2E2/000?text=肺" },
+                        { text: "心臓", image: "https://placehold.co/80x50/FEE2E2/000?text=心臓" },
+                        { text: "脳", image: "https://placehold.co/80x50/FEE2E2/000?text=脳" },
+                        { text: "胃", image: "" },
+                        { text: "腎臓", image: "" },
+                        { text: "膵臓", image: "" },
+                        { text: "脾臓", image: "" }
+                    ]
+                }
+            ],
+            "社会": [
+                {
+                    question: "日本の現在の元号は何ですか？",
+                    questionImage: "",
+                    correctAnswer: { text: "令和", image: "https://placehold.co/80x50/D1FAE5/000?text=令和" },
+                    incorrectChoices: [
+                        { text: "平成", image: "https://placehold.co/80x50/FEE2E2/000?text=平成" },
+                        { text: "昭和", image: "https://placehold.co/80x50/FEE2E2/000?text=昭和" },
+                        { text: "大正", image: "https://placehold.co/80x50/FEE2E2/000?text=大正" },
+                        { text: "明治", image: "https://placehold.co/80x50/FEE2E2/000?text=明治" },
+                        { text: "安政", image: "" },
+                        { text: "慶応", image: "" },
+                        { text: "弘化", image: "" },
+                        { text: "天保", image: "" }
+                    ]
+                },
+                {
+                    question: "日本の国会議事堂がある都市はどこですか？",
+                    questionImage: "https://placehold.co/150x100/E0F2F7/000?text=国会議事堂",
+                    correctAnswer: { text: "東京", image: "https://placehold.co/80x50/D1FAE5/000?text=東京" },
+                    incorrectChoices: [
+                        { text: "京都", image: "https://placehold.co/80x50/FEE2E2/000?text=京都" },
+                        { text: "大阪", image: "https://placehold.co/80x50/FEE2E2/000?text=大阪" },
+                        { text: "札幌", image: "https://placehold.co/80x50/FEE2E2/000?text=札幌" },
+                        { text: "福岡", image: "https://placehold.co/80x50/FEE2E2/000?text=福岡" },
+                        { text: "名古屋", image: "" },
+                        { text: "横浜", image: "" },
+                        { text: "仙台", image: "" },
+                        { text: "広島", image: "" }
+                    ]
+                },
+                {
+                    question: "世界で最も人口が多い国はどこですか？",
+                    questionImage: "",
+                    correctAnswer: { text: "インド", image: "https://placehold.co/80x50/D1FAE5/000?text=インド" },
+                    incorrectChoices: [
+                        { text: "中国", image: "https://placehold.co/80x50/FEE2E2/000?text=中国" },
+                        { text: "アメリカ", image: "https://placehold.co/80x50/FEE2E2/000?text=アメリカ" },
+                        { text: "インドネシア", image: "https://placehold.co/80x50/FEE2E2/000?text=インドネシア" },
+                        { text: "パキスタン", image: "https://placehold.co/80x50/FEE2E2/000?text=パキスタン" },
+                        { text: "ナイジェリア", image: "" },
+                        { text: "ブラジル", image: "" },
+                        { text: "ロシア", image: "" },
+                        { text: "バングラデシュ", image: "" }
+                    ]
+                },
+                {
+                    question: "第二次世界大戦が終結した年は西暦何年ですか？",
+                    questionImage: "",
+                    correctAnswer: { text: "1945", image: "https://placehold.co/80x50/D1FAE5/000?text=1945年" },
+                    incorrectChoices: [
+                        { text: "1939", image: "https://placehold.co/80x50/FEE2E2/000?text=1939年" },
+                        { text: "1918", image: "https://placehold.co/80x50/FEE2E2/000?text=1918年" },
+                        { text: "1950", image: "https://placehold.co/80x50/FEE2E2/000?text=1950年" },
+                        { text: "1960", image: "https://placehold.co/80x50/FEE2E2/000?text=1960年" },
+                        { text: "1941", image: "" },
+                        { text: "1942", image: "" },
+                        { text: "1943", image: "" },
+                        { text: "1944", image: "" }
+                    ]
+                },
+                {
+                    question: "日本の最高裁判所があるのはどこですか？",
+                    questionImage: "https://placehold.co/150x100/E0F2F7/000?text=最高裁判所",
+                    correctAnswer: { text: "東京", image: "https://placehold.co/80x50/D1FAE5/000?text=東京" },
+                    incorrectChoices: [
+                        { text: "京都", image: "https://placehold.co/80x50/FEE2E2/000?text=京都" },
+                        { text: "大阪", image: "https://placehold.co/80x50/FEE2E2/000?text=大阪" },
+                        { text: "広島", image: "https://placehold.co/80x50/FEE2E2/000?text=広島" },
+                        { text: "仙台", image: "https://placehold.co/80x50/FEE2E2/000?text=仙台" },
+                        { text: "那覇", image: "" },
+                        { text: "福岡", image: "" },
+                        { text: "名古屋", image: "" },
+                        { text: "横浜", image: "" }
+                    ]
+                }
+            ]
+        };
+
+        let currentQuizQuestions = []; // 今回のテストで使用する5問
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedAnswer = null; // { text: string, image: string }
+        let quizActive = false; // クイズがアクティブかどうかを示すフラグ
+        let answeredQuestionsLog = []; // 回答履歴を保存
+        let currentSelectedSubject = null; // 現在選択されている科目
+        let editingQuestionIndex = null; // 編集中の問題のインデックス (nullの場合は新規作成)
+        let editingSubject = null; // 編集中の問題の科目
+        let currentEditingIncorrectChoiceIndex = null; // 編集中の不正解選択肢のインデックス (nullの場合は新規追加)
+
+        // タイマー関連変数
+        let timerInterval = null;
+        const quizDuration = 3 * 60; // 3分を秒に変換
+        let timeLeft = quizDuration;
+
+        // 認証関連変数
+        let currentUser = null; // 現在ログインしているユーザーID
+        const adminUserIds = ["admin1", "admin2", "管理者"]; // 管理者として認識するユーザーIDのリスト
+
+        // DOM要素の取得
+        const loginSection = document.getElementById('login-section');
+        const userIdInput = document.getElementById('user-id-input');
+        const loginButton = document.getElementById('login-button');
+        const backFromLoginButton = document.getElementById('back-from-login-button'); // ログイン画面から戻るボタン
+
+        const subjectSelectionSection = document.getElementById('subject-selection-section');
+        const subjectButtonsContainer = document.getElementById('subject-buttons-container');
+        const goToAddQuestionButton = document.getElementById('go-to-add-question-button');
+        const logoutButton = document.getElementById('logout-button'); // ログアウトボタン
+        const cornerLoginButton = document.getElementById('corner-login-button'); // 隅のログインボタン
+
+        const questionSection = document.getElementById('question-section');
+        const timerDisplay = document.getElementById('timer-display');
+        const questionImageElement = document.getElementById('question-image'); // 問題画像要素
+        const questionTextElement = document.getElementById('question-text');
+        const choicesContainer = document.getElementById('choices-container');
+        const feedbackMessageElement = document.getElementById('feedback-message');
+        const nextButton = document.getElementById('next-button');
+
+        const resultSection = document.getElementById('result-section');
+        const finalScoreElement = document.getElementById('final-score');
+        const resultsDetailsContainer = document.getElementById('results-details-container');
+        const restartButton = document.getElementById('restart-button');
+        const backToSubjectsButton = document.getElementById('back-to-subjects-button');
+
+        const addEditQuestionSection = document.getElementById('add-edit-question-section');
+        const addQuestionSubjectSelect = document.getElementById('add-question-subject-select');
+        const newSubjectNameInput = document.getElementById('new-subject-name');
+        const existingQuestionsListContainer = document.getElementById('existing-questions-list-container');
+        const existingQuestionsList = document.getElementById('existing-questions-list');
+        const clearFormButton = document.getElementById('clear-form-button');
+        const addQuestionTextInput = document.getElementById('add-question-text');
+        const addQuestionImageURLInput = document.getElementById('add-question-image-url'); // 問題画像URL入力
+        const addCorrectAnswerInput = document.getElementById('add-correct-answer');
+        const addCorrectAnswerImageURLInput = document.getElementById('add-correct-answer-image-url'); // 正解画像URL入力
+        const incorrectChoiceTextInput = document.getElementById('incorrect-choice-text-input'); // 不正解テキスト入力
+        const incorrectChoiceImageInput = document.getElementById('incorrect-choice-image-input'); // 不正解画像URL入力
+        const saveIncorrectChoiceButton = document.getElementById('save-incorrect-choice-button'); // 不正解選択肢の追加/更新ボタン
+        const cancelIncorrectChoiceEditButton = document.getElementById('cancel-incorrect-choice-edit-button'); // 不正解選択肢の編集キャンセルボタン
+        const currentIncorrectChoicesDisplay = document.getElementById('current-incorrect-choices-display');
+        const saveQuestionButton = document.getElementById('save-question-button');
+        const backFromAddQuestionButton = document.getElementById('back-from-add-question-button');
+        const confettiContainer = document.getElementById('confetti-container'); // 紙吹雪コンテナ
+
+        let currentIncorrectChoicesForNewQuestion = []; // { text: string, image: string } の配列
+        let displayedChoices = []; // 表示される選択肢を保持するための配列 (クイズ出題時のみ使用)
+
+        // 画面表示を切り替えるヘルパー関数
+        function showSection(sectionToShow) {
+            loginSection.classList.add('hidden');
+            subjectSelectionSection.classList.add('hidden');
+            questionSection.classList.add('hidden');
+            resultSection.classList.add('hidden');
+            addEditQuestionSection.classList.add('hidden');
+            sectionToShow.classList.remove('hidden');
+
+            // ページの上部へスクロール
+            window.scrollTo(0, 0);
+
+            // クイズセクションから離れるときにタイマーを停止
+            if (sectionToShow !== questionSection) {
+                stopTimer();
+            }
+        }
+
+        // UIを認証状態に基づいて更新する関数
+        function updateUIBasedOnAuth() {
+            // 常に科目選択画面を表示
+            showSection(subjectSelectionSection);
+            displaySubjectSelection(); // 科目選択画面のボタンを再描画
+
+            if (currentUser) {
+                // ログイン済みの場合
+                cornerLoginButton.classList.add('hidden'); // 隅のログインボタンを非表示
+                logoutButton.classList.remove('hidden'); // ログアウトボタンを表示
+
+                // 管理者かどうかで「問題を追加・編集」ボタンの表示を切り替える
+                if (adminUserIds.includes(currentUser)) {
+                    goToAddQuestionButton.classList.remove('hidden');
+                } else {
+                    goToAddQuestionButton.classList.add('hidden');
+                }
+            } else {
+                // 未ログインの場合
+                cornerLoginButton.classList.remove('hidden'); // 隅のログインボタンを表示
+                logoutButton.classList.add('hidden'); // ログアウトボタンを非表示
+                goToAddQuestionButton.classList.add('hidden'); // 問題追加・編集ボタンを非表示
+            }
+        }
+
+        // ログイン処理
+        function login() {
+            const userId = userIdInput.value.trim();
+            if (userId) {
+                currentUser = userId;
+                console.log('ログインユーザーID:', currentUser); // デバッグ用
+                console.log('管理者IDリスト:', adminUserIds); // デバッグ用
+                console.log('管理者か？:', adminUserIds.includes(currentUser)); // デバッグ用
+
+                // ログイン後、管理者であれば問題追加・編集画面へ、そうでなければ科目選択画面へ
+                if (adminUserIds.includes(currentUser)) {
+                    showSection(addEditQuestionSection);
+                    populateAddQuestionSubjectSelect();
+                    resetAddQuestionForm();
+                } else {
+                    updateUIBasedOnAuth(); // 非管理者は科目選択画面へ
+                }
+            } else {
+                alert('ユーザーIDを入力してください。');
+            }
+        }
+
+        // ログアウト処理
+        function logout() {
+            currentUser = null;
+            userIdInput.value = ''; // ユーザーID入力欄をクリア
+            updateUIBasedOnAuth(); // ログアウト後、UIを更新して科目選択画面に戻る
+        }
+
+
+        // タイマー表示を更新する関数
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+            if (timeLeft <= 10) { // 残り10秒以下で赤色に強調
+                timerDisplay.style.color = '#ef4444';
+            } else {
+                timerDisplay.style.color = '#dc2626'; // 通常の赤色
+            }
+
+            if (timeLeft <= 0) {
+                endQuizDueToTimer();
+            }
+        }
+
+        // タイマーを開始する関数
+        function startTimer() {
+            stopTimer(); // 既存のタイマーがあれば停止
+            timeLeft = quizDuration; // タイマーをリセット
+            updateTimerDisplay(); // 初期表示を更新
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        // タイマーを停止する関数
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        // タイマー切れでクイズを強制終了する関数
+        function endQuizDueToTimer() {
+            stopTimer();
+            feedbackMessageElement.textContent = '時間切れです！テストを終了します。';
+            feedbackMessageElement.classList.add('incorrect');
+            // すべての選択肢を無効化
+            document.querySelectorAll('.choice-button').forEach(btn => {
+                btn.disabled = true;
+            });
+            nextButton.textContent = '結果を見る';
+            nextButton.disabled = false; // 結果を見るボタンは有効にする
+            quizActive = false; // クイズを非アクティブにする
+        }
+
+        // 科目選択画面を表示
+        function displaySubjectSelection() {
+            subjectButtonsContainer.innerHTML = ''; // 既存のボタンをクリア
+
+            for (const subject in quizDataBySubject) {
+                const button = document.createElement('button');
+                button.textContent = subject;
+                button.classList.add('subject-button');
+                button.addEventListener('click', () => startQuiz(subject));
+                subjectButtonsContainer.appendChild(button);
+            }
+        }
+
+        // 問題をランダムに5問選択する関数
+        function getRandomQuestions(allQuestions, count) {
+            const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
+        }
+
+        // 問題の選択肢を生成する関数 (正解1つ + 不正解4つ)
+        function generateChoicesForQuestion(correctAnswer, incorrectChoices) {
+            const shuffledIncorrect = [...incorrectChoices].sort(() => 0.5 - Math.random());
+            // 不正解を4つ選択。不正解が4つ未満の場合は全て選択。
+            const selectedIncorrect = shuffledIncorrect.slice(0, Math.min(4, shuffledIncorrect.length));
+            const allChoices = [correctAnswer, ...selectedIncorrect];
+            return allChoices.sort(() => 0.5 - Math.random()); // 選択肢をシャッフル
+        }
+
+        // 現在の問題と選択肢をロードして表示する関数
+        function loadQuestion() {
+            feedbackMessageElement.textContent = '';
+            feedbackMessageElement.className = 'feedback-message'; // クラスをリセット
+            nextButton.textContent = '回答する';
+            nextButton.disabled = true; // 回答が選択されるまで無効にする
+
+            const questionData = currentQuizQuestions[currentQuestionIndex];
+            
+            // 問題画像を表示
+            if (questionData.questionImage && questionData.questionImage.trim() !== '') {
+                questionImageElement.src = questionData.questionImage;
+                questionImageElement.classList.remove('hidden');
+                // 画像読み込み失敗時に非表示にする
+                questionImageElement.onerror = () => {
+                    questionImageElement.classList.add('hidden');
+                    questionImageElement.src = ''; // srcをクリアして再試行を防ぐ
+                };
+            } else {
+                questionImageElement.classList.add('hidden');
+                questionImageElement.src = ''; // Clear src if no image
+            }
+
+            questionTextElement.textContent = `Q${currentQuestionIndex + 1}. ${questionData.question}`;
+            choicesContainer.innerHTML = '';
+            selectedAnswer = null; // 選択された回答をリセット
+
+            // 問題がロードされるたびに新しい選択肢を生成し、displayedChoicesに保存
+            // 既に生成済みの場合は再利用してシャッフルしない
+            if (displayedChoices.length === 0 || currentQuestionIndex !== answeredQuestionsLog.length) {
+                displayedChoices = generateChoicesForQuestion(questionData.correctAnswer, questionData.incorrectChoices);
+            }
+
+            displayedChoices.forEach(choice => { // displayedChoices を使用してボタンを作成
+                const button = document.createElement('button');
+                
+                // 画像URLがある場合のみ画像要素を追加
+                if (choice.image && choice.image.trim() !== '') {
+                    const img = document.createElement('img');
+                    img.classList.add('choice-image');
+                    img.src = choice.image;
+                    img.onerror = () => {
+                        img.classList.add('hidden'); // 読み込み失敗時に非表示
+                        img.src = ''; // srcをクリアして再試行を防ぐ
+                    };
+                    img.alt = `${choice.text}の画像`;
+                    button.appendChild(img);
+                }
+
+                // テキスト要素を追加
+                const span = document.createElement('span');
+                span.textContent = choice.text;
+                button.appendChild(span);
+
+                button.classList.add('choice-button');
+                button.addEventListener('click', () => selectChoice(button, choice));
+                choicesContainer.appendChild(button);
+            });
+
+            // すべての選択肢ボタンからクラスを削除
+            document.querySelectorAll('.choice-button').forEach(btn => {
+                btn.classList.remove('selected', 'correct', 'incorrect');
+            });
+        }
+
+        // 選択肢がクリックされたときの処理
+        function selectChoice(button, choice) {
+            if (!quizActive) return; // 既に回答済みの場合、選択肢の変更を許可しない
+
+            // 他の選択肢の選択状態を解除
+            document.querySelectorAll('.choice-button').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+
+            // 現在の選択肢を選択状態にする
+            button.classList.add('selected');
+            selectedAnswer = choice; // オブジェクト全体を保存
+            nextButton.disabled = false; // 回答が選択されたのでボタンを有効にする
+        }
+
+        // 回答をチェックする関数
+        function checkAnswer() {
+            if (!quizActive) return; // 既に回答済みの場合、二重チェックを避ける
+
+            const questionData = currentQuizQuestions[currentQuestionIndex];
+            // selectedAnswer と questionData.correctAnswer はオブジェクトなので、textプロパティで比較
+            const isCorrect = (selectedAnswer && selectedAnswer.text === questionData.correctAnswer.text);
+
+            // 回答履歴に追加
+            answeredQuestionsLog.push({
+                question: questionData.question,
+                questionImage: questionData.questionImage,
+                yourAnswer: selectedAnswer ? selectedAnswer.text : '未回答', // 未回答の場合の処理
+                yourAnswerImage: selectedAnswer ? selectedAnswer.image : '', // selectedAnswer.image を追加
+                correctAnswer: questionData.correctAnswer.text,
+                correctAnswerImage: questionData.correctAnswer.image,
+                isCorrect: isCorrect
+            });
+
+            // フィードバックメッセージを表示
+            if (isCorrect) {
+                feedbackMessageElement.innerHTML = '✅ 正解です！'; // 絵文字を追加
+                feedbackMessageElement.classList.add('correct');
+            } else {
+                feedbackMessageElement.innerHTML = `❌ 不正解です。正解は「${questionData.correctAnswer.text}」でした。`; // 絵文字を追加
+                feedbackMessageElement.classList.add('incorrect');
+            }
+
+            // 選択肢のスタイルを更新
+            document.querySelectorAll('.choice-button').forEach(btn => {
+                // ボタン内のテキスト要素からテキストを取得
+                const choiceTextSpan = btn.querySelector('span');
+                const choiceText = choiceTextSpan ? choiceTextSpan.textContent : '';
+                btn.disabled = true; // 回答後は選択肢を無効にする
+
+                if (choiceText === questionData.correctAnswer.text) {
+                    btn.classList.add('correct');
+                } else if (selectedAnswer && choiceText === selectedAnswer.text && !isCorrect) {
+                    btn.classList.add('incorrect');
+                }
+            });
+
+            nextButton.textContent = '次の問題へ';
+            nextButton.disabled = false; // Ensure it's enabled to proceed to next question
+            quizActive = false; // 回答済みなのでクイズを非アクティブにする
+        }
+
+        // 次の問題へ進む、または結果を表示する関数
+        function nextQuestion() {
+            // 回答済みでない場合、回答チェックを行う
+            if (nextButton.textContent === '回答する') {
+                if (selectedAnswer === null) {
+                    feedbackMessageElement.textContent = '選択肢を選んでください。';
+                    feedbackMessageElement.classList.add('incorrect');
+                    return;
+                }
+                checkAnswer();
+                return; // 回答チェック後、次のクリックで次の問題に進むようにする
+            }
+
+            currentQuestionIndex++;
+            quizActive = true; // 次の問題に進むのでクイズをアクティブにする
+            displayedChoices = []; // 次の問題のために選択肢をリセット
+
+            if (currentQuestionIndex < currentQuizQuestions.length) {
+                window.scrollTo(0, 0); // ページの上部へスクロール
+                loadQuestion();
+            } else {
+                // クイズ終了
+                displayResults();
+            }
+        }
+
+        // 結果を表示する関数
+        function displayResults() {
+            stopTimer(); // 結果表示時にタイマーを停止
+            showSection(resultSection);
+            // スコアは回答履歴から計算
+            score = answeredQuestionsLog.filter(log => log.isCorrect).length;
+            finalScoreElement.textContent = `あなたのスコア: ${score} / ${currentQuizQuestions.length}`;
+            resultsDetailsContainer.innerHTML = ''; // 既存の結果をクリア
+
+            answeredQuestionsLog.forEach((log, index) => {
+                const resultItem = document.createElement('div');
+                resultItem.classList.add('result-item');
+                if (!log.isCorrect) {
+                    resultItem.classList.add('incorrect-attempt');
+                }
+
+                const questionP = document.createElement('p');
+                questionP.classList.add('question');
+                
+                // 問題画像を追加 (URLがある場合のみ)
+                if (log.questionImage && log.questionImage.trim() !== '') {
+                    const img = document.createElement('img');
+                    img.src = log.questionImage;
+                    img.onerror = () => { img.style.display = 'none'; }; // 読み込み失敗時に非表示
+                    img.alt = "問題画像";
+                    img.classList.add('result-item-image');
+                    questionP.appendChild(img);
+                }
+                questionP.appendChild(document.createTextNode(`Q${index + 1}. ${log.question}`));
+                resultItem.appendChild(questionP);
+
+                const yourAnswerP = document.createElement('p');
+                yourAnswerP.classList.add('your-answer');
+                yourAnswerP.appendChild(document.createTextNode('あなたの回答: '));
+                // あなたの回答画像を追加 (URLがある場合のみ)
+                if (log.yourAnswerImage && log.yourAnswerImage.trim() !== '') {
+                    const img = document.createElement('img');
+                    img.src = log.yourAnswerImage;
+                    img.onerror = () => { img.style.display = 'none'; }; // 読み込み失敗時に非表示
+                    img.alt = "あなたの回答画像";
+                    img.classList.add('result-item-image');
+                    yourAnswerP.appendChild(img);
+                }
+                yourAnswerP.appendChild(document.createTextNode(log.yourAnswer));
+                resultItem.appendChild(yourAnswerP);
+
+                const correctAnswerP = document.createElement('p');
+                correctAnswerP.classList.add('correct-answer');
+                correctAnswerP.appendChild(document.createTextNode('正解: '));
+                // 正解画像を追加 (URLがある場合のみ)
+                if (log.correctAnswerImage && log.correctAnswerImage.trim() !== '') {
+                    const img = document.createElement('img');
+                    img.src = log.correctAnswerImage;
+                    img.onerror = () => { img.style.display = 'none'; }; // 読み込み失敗時に非表示
+                    img.alt = "正解画像";
+                    img.classList.add('result-item-image');
+                    correctAnswerP.appendChild(img);
+                }
+                correctAnswerP.appendChild(document.createTextNode(log.correctAnswer));
+                resultItem.appendChild(correctAnswerP);
+
+                resultsDetailsContainer.appendChild(resultItem);
+            });
+
+            // 満点の場合に紙吹雪をトリガー
+            if (score === currentQuizQuestions.length && currentQuizQuestions.length > 0) {
+                triggerConfetti();
+            }
+        }
+
+        // 紙吹雪をトリガーする関数
+        function triggerConfetti() {
+            const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50', '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800', '#FF5722', '#795548', '#9E9E9E', '#607D8B'];
+            const numConfetti = 100; // 紙吹雪の数
+
+            for (let i = 0; i < numConfetti; i++) {
+                const confettiPiece = document.createElement('div');
+                confettiPiece.classList.add('confetti-piece');
+                confettiPiece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confettiPiece.style.left = `${Math.random() * 100}vw`;
+                confettiPiece.style.animationDelay = `${Math.random() * 2}s`; // アニメーション開始をずらす
+                confettiPiece.style.animationDuration = `${3 + Math.random() * 2}s`; // アニメーション時間をずらす
+                confettiPiece.style.transform = `translateY(-100px) rotateZ(${Math.random() * 360}deg)`; // 初期位置と回転
+                confettiContainer.appendChild(confettiPiece);
+
+                // アニメーション終了後に要素を削除してDOMをクリーンアップ
+                confettiPiece.addEventListener('animationend', () => {
+                    confettiPiece.remove();
+                });
+            }
+        }
+
+
+        // クイズをリセットして開始する関数
+        function startQuiz(subject) {
+            if (!quizDataBySubject[subject] || quizDataBySubject[subject].length === 0) {
+                alert('この科目には問題がありません。問題を追加してください。');
+                displaySubjectSelection(); // 科目選択に戻る
+                return;
+            }
+            currentSelectedSubject = subject; // 現在選択されている科目を保存
+            currentQuizQuestions = getRandomQuestions(quizDataBySubject[subject], 5);
+            currentQuestionIndex = 0;
+            score = 0;
+            selectedAnswer = null;
+            quizActive = true; // クイズ開始時にアクティブにする
+            answeredQuestionsLog = []; // 回答履歴をリセット
+            displayedChoices = []; // 新しいクイズ開始時に選択肢をリセット
+
+            showSection(questionSection);
+            startTimer(); // クイズ開始時にタイマーを開始
+            loadQuestion();
+        }
+
+        // 問題追加・編集画面へ移動
+        goToAddQuestionButton.addEventListener('click', () => {
+            showSection(addEditQuestionSection);
+            populateAddQuestionSubjectSelect();
+            resetAddQuestionForm(); // フォームをリセットして新規作成状態にする
+        });
+
+        // 問題追加フォームの科目選択を更新
+        function populateAddQuestionSubjectSelect() {
+            addQuestionSubjectSelect.innerHTML = '';
+
+            // Always add the "新しい科目を選択" option
+            const newSubjectOption = document.createElement('option');
+            newSubjectOption.value = '';
+            newSubjectOption.textContent = '新しい科目を選択';
+            addQuestionSubjectSelect.appendChild(newSubjectOption);
+
+            for (const subject in quizDataBySubject) {
+                const option = document.createElement('option');
+                option.value = subject;
+                option.textContent = subject;
+                addQuestionSubjectSelect.appendChild(option);
+            }
+
+            // Set initial selection and visibility based on whether subjects exist
+            addQuestionSubjectSelect.removeEventListener('change', handleSubjectSelectChange); // Prevent duplicate listeners
+            addQuestionSubjectSelect.addEventListener('change', handleSubjectSelectChange);
+
+            // Initial state for newSubjectNameInput and existing questions list
+            if (Object.keys(quizDataBySubject).length > 0) {
+                addQuestionSubjectSelect.value = Object.keys(quizDataBySubject)[0];
+                newSubjectNameInput.classList.add('hidden');
+                newSubjectNameInput.disabled = true;
+                newSubjectNameInput.setAttribute('aria-hidden', 'true');
+                displayQuestionsForSubject(addQuestionSubjectSelect.value); // 最初の科目の問題を表示
+            } else {
+                addQuestionSubjectSelect.value = ''; // Select the "新しい科目を選択" option
+                newSubjectNameInput.classList.remove('hidden');
+                newSubjectNameInput.disabled = false;
+                newSubjectNameInput.removeAttribute('aria-hidden');
+                displayQuestionsForSubject(''); // 問題リストをクリア
+            }
+        }
+
+        // 科目選択ドロップダウンの変更ハンドラ
+        function handleSubjectSelectChange() {
+            // 科目変更時にフォームをリセットするが、科目選択自体はリセットしない
+            const currentSelectedValue = addQuestionSubjectSelect.value; // ユーザーが選択した値を一時的に保持
+            resetAddQuestionForm(true); // 科目選択もリセットするように変更
+            addQuestionSubjectSelect.value = currentSelectedValue; // ユーザーが選択した値を再設定
+
+            if (addQuestionSubjectSelect.value === '') { // This means "新しい科目を選択" is selected
+                newSubjectNameInput.classList.remove('hidden');
+                newSubjectNameInput.disabled = false;
+                newSubjectNameInput.removeAttribute('aria-hidden');
+                displayQuestionsForSubject(''); // 新しい科目なので既存問題リストはクリア
+            } else {
+                newSubjectNameInput.classList.add('hidden');
+                newSubjectNameInput.value = ''; // Clear new subject name if an existing one is selected
+                newSubjectNameInput.disabled = true;
+                newSubjectNameInput.setAttribute('aria-hidden', 'true');
+                displayQuestionsForSubject(addQuestionSubjectSelect.value); // 選択された科目の問題を表示
+            }
+        }
+
+        // 選択された科目の既存問題をリスト表示する関数
+        function displayQuestionsForSubject(subject) {
+            existingQuestionsList.innerHTML = ''; // 既存のリストをクリア
+
+            if (!subject || !quizDataBySubject[subject] || quizDataBySubject[subject].length === 0) {
+                existingQuestionsList.textContent = 'この科目には問題がありません。';
+                return;
+            }
+
+            quizDataBySubject[subject].forEach((questionData, index) => {
+                const item = document.createElement('div');
+                item.classList.add('add-question-list-item');
+                // 問題画像がある場合のみ表示
+                const questionImgHtml = questionData.questionImage && questionData.questionImage.trim() !== ''
+                    ? `<img src="${questionData.questionImage}" onerror="this.style.display='none';" class="result-item-image mr-2" alt="問題画像">`
+                    : '';
+                item.innerHTML = `
+                    <div> ${questionImgHtml}
+                        <span>${questionData.question.substring(0, 30)}${questionData.question.length > 30 ? '...' : ''}</span>
+                    </div>
+                    <div> <button class="list-action-button edit-button" data-index="${index}">編集</button>
+                        <button class="list-action-button delete-button" data-index="${index}">削除</button>
+                    </div>
+                `;
+                item.querySelector('.edit-button').addEventListener('click', (e) => {
+                    editQuestion(subject, parseInt(e.target.dataset.index));
+                });
+                item.querySelector('.delete-button').addEventListener('click', (e) => {
+                    deleteQuestion(subject, parseInt(e.target.dataset.index));
+                });
+                existingQuestionsList.appendChild(item);
+            });
+        }
+
+        // 問題を編集フォームに読み込む関数
+        function editQuestion(subject, index) {
+            resetAddQuestionForm(false); // フォームをリセットするが、科目選択はリセットしない
+            editingQuestionIndex = index;
+            editingSubject = subject; // 編集中の科目を保存
+
+            const questionData = quizDataBySubject[subject][index];
+            addQuestionTextInput.value = questionData.question;
+            addQuestionImageURLInput.value = questionData.questionImage || ''; // 画像URLをセット
+            addCorrectAnswerInput.value = questionData.correctAnswer.text;
+            addCorrectAnswerImageURLInput.value = questionData.correctAnswer.image || ''; // 画像URLをセット
+            currentIncorrectChoicesForNewQuestion = [...questionData.incorrectChoices]; // コピーして編集
+            updateIncorrectChoicesList();
+
+            saveQuestionButton.textContent = '問題を更新';
+            addQuestionSubjectSelect.value = subject; // 編集中の科目をドロップダウンに設定
+
+            // 既存の科目を選択しているので、新しい科目名入力欄は非表示・無効化
+            newSubjectNameInput.classList.add('hidden');
+            newSubjectNameInput.value = ''; // 念のためクリア
+            newSubjectNameInput.disabled = true;
+            newSubjectNameInput.setAttribute('aria-hidden', 'true');
+        }
+
+        // 問題を削除する関数
+        function deleteQuestion(subject, index) {
+            if (confirm('この問題を削除してもよろしいですか？')) {
+                quizDataBySubject[subject].splice(index, 1);
+                alert('問題を削除しました。');
+                displayQuestionsForSubject(subject); // リストを更新
+                resetAddQuestionForm(); // フォームをリセット
+            }
+        }
+
+
+        // 不正解選択肢リストを更新 (現在の入力フォーム用)
+        function updateIncorrectChoicesList() {
+            currentIncorrectChoicesDisplay.innerHTML = '';
+            if (currentIncorrectChoicesForNewQuestion.length === 0) {
+                currentIncorrectChoicesDisplay.textContent = '不正解の選択肢がありません。';
+                return;
+            }
+            currentIncorrectChoicesForNewQuestion.forEach((choice, index) => {
+                const item = document.createElement('div');
+                item.classList.add('incorrect-choice-item'); // クラス名を変更
+                // 画像URLがある場合のみ画像要素を追加
+                const imgHtml = choice.image && choice.image.trim() !== ''
+                    ? `<img src="${choice.image}" onerror="this.style.display='none';" class="result-item-image mr-2" alt="選択肢画像">`
+                    : '';
+                item.innerHTML = `
+                    <div> ${imgHtml}
+                        <span>${choice.text}</span>
+                    </div>
+                    <div> <button class="list-action-button edit-button" data-index="${index}">編集</button>
+                        <button class="list-action-button delete-button" data-index="${index}">削除</button>
+                    </div>
+                `;
+                item.querySelector('.edit-button').addEventListener('click', (e) => {
+                    editIncorrectChoice(parseInt(e.target.dataset.index));
+                });
+                item.querySelector('.delete-button').addEventListener('click', (e) => {
+                    deleteIncorrectChoice(parseInt(e.target.dataset.index));
+                });
+                currentIncorrectChoicesDisplay.appendChild(item);
+            });
+        }
+
+        // 不正解選択肢を編集フォームに読み込む関数
+        function editIncorrectChoice(index) {
+            currentEditingIncorrectChoiceIndex = index;
+            const choice = currentIncorrectChoicesForNewQuestion[index];
+            incorrectChoiceTextInput.value = choice.text;
+            incorrectChoiceImageInput.value = choice.image || '';
+            saveIncorrectChoiceButton.textContent = '更新';
+            saveIncorrectChoiceButton.classList.remove('save-choice-button');
+            saveIncorrectChoiceButton.classList.add('save-choice-button'); /* Re-add to ensure base style */
+            cancelIncorrectChoiceEditButton.classList.remove('hidden');
+        }
+
+        // 不正解選択肢を削除する関数
+        function deleteIncorrectChoice(index) {
+            if (confirm('この不正解選択肢を削除してもよろしいですか？')) {
+                currentIncorrectChoicesForNewQuestion.splice(index, 1);
+                updateIncorrectChoicesList();
+                // 削除後に編集中のものがなくなった場合、フォームをリセット
+                if (currentEditingIncorrectChoiceIndex === index) {
+                    resetIncorrectChoiceForm();
+                } else if (currentEditingIncorrectChoiceIndex > index) {
+                    // 削除されたインデックスより後ろにあった場合、インデックスを調整
+                    currentEditingIncorrectChoiceIndex--;
+                }
+            }
+        }
+
+        // 不正解選択肢の入力フォームをリセットする関数
+        function resetIncorrectChoiceForm() {
+            incorrectChoiceTextInput.value = '';
+            incorrectChoiceImageInput.value = '';
+            currentEditingIncorrectChoiceIndex = null;
+            saveIncorrectChoiceButton.textContent = '追加';
+            saveIncorrectChoiceButton.classList.remove('save-choice-button');
+            saveIncorrectChoiceButton.classList.add('save-choice-button'); /* Re-add to ensure base style */
+            cancelIncorrectChoiceEditButton.classList.add('hidden');
+        }
+
+        // 不正解選択肢の追加/更新
+        saveIncorrectChoiceButton.addEventListener('click', () => {
+            const MAX_INCORRECT_CHOICES = 20; // 不正解選択肢の最大数を20に設定
+            const choiceText = incorrectChoiceTextInput.value.trim();
+            const choiceImage = incorrectChoiceImageInput.value.trim();
+
+            if (!choiceText) {
+                alert('不正解のテキストを入力してください。');
+                return;
+            }
+
+            // 重複チェック (テキストのみでチェック)
+            const isDuplicate = currentIncorrectChoicesForNewQuestion.some((choice, idx) =>
+                choice.text === choiceText && idx !== currentEditingIncorrectChoiceIndex
+            );
+
+            if (isDuplicate) {
+                alert('その不正解選択肢は既に存在します。');
+                return;
+            }
+
+            if (currentEditingIncorrectChoiceIndex !== null) {
+                // 更新
+                currentIncorrectChoicesForNewQuestion[currentEditingIncorrectChoiceIndex] = { text: choiceText, image: choiceImage };
+                alert('不正解選択肢が更新されました！');
+            } else {
+                // 追加
+                if (currentIncorrectChoicesForNewQuestion.length >= MAX_INCORRECT_CHOICES) {
+                    alert(`不正解の選択肢は${MAX_INCORRECT_CHOICES}つまでです。`);
+                    return;
+                }
+                currentIncorrectChoicesForNewQuestion.push({ text: choiceText, image: choiceImage });
+                alert('不正解選択肢が追加されました！');
+            }
+            
+            resetIncorrectChoiceForm();
+            updateIncorrectChoicesList();
+        });
+
+        // 不正解選択肢の編集キャンセル
+        cancelIncorrectChoiceEditButton.addEventListener('click', () => {
+            resetIncorrectChoiceForm();
+        });
+
+
+        // 問題を保存/更新
+        saveQuestionButton.addEventListener('click', () => {
+            const selectedSubject = addQuestionSubjectSelect.value;
+            const newSubject = newSubjectNameInput.value.trim();
+            const questionText = addQuestionTextInput.value.trim();
+            const questionImage = addQuestionImageURLInput.value.trim();
+            const correctAnswerText = addCorrectAnswerInput.value.trim();
+            const correctAnswerImage = addCorrectAnswerImageURLInput.value.trim();
+            const incorrectChoices = currentIncorrectChoicesForNewQuestion;
+
+            let targetSubject = selectedSubject;
+            if (selectedSubject === '' && newSubject !== '') { // "新しい科目を選択"が選ばれ、新しい科目名が入力された場合
+                targetSubject = newSubject;
+                if (quizDataBySubject[targetSubject]) {
+                    alert('その新しい科目は既に存在します。');
+                    return;
+                }
+                quizDataBySubject[targetSubject] = []; // 新しい科目を初期化
+            } else if (selectedSubject === '' && newSubject === '') { // "新しい科目を選択"が選ばれたが、新しい科目名が入力されていない場合
+                alert('科目を選択するか、新しい科目名を入力してください。');
+                return;
+            }
+
+            // 問題をテストに出題するために、最低4つの不正解選択肢が必要 (正解1 + 不正解4 = 計5選択肢)
+            if (!questionText || !correctAnswerText || incorrectChoices.length < 4) {
+                alert('問題文、正解、および少なくとも4つの不正解選択肢を入力してください。');
+                return;
+            }
+
+            const newQuestion = {
+                question: questionText,
+                questionImage: questionImage,
+                correctAnswer: { text: correctAnswerText, image: correctAnswerImage },
+                incorrectChoices: incorrectChoices
+            };
+
+            if (editingQuestionIndex !== null && editingSubject === targetSubject) {
+                // 既存の問題を更新
+                quizDataBySubject[targetSubject][editingQuestionIndex] = newQuestion;
+                alert('問題が更新されました！');
+                // 問題更新時は科目選択をリセットしない
+                resetAddQuestionForm(false);
+                displayQuestionsForSubject(targetSubject); // 現在の科目の問題リストを更新
+            } else {
+                // 新しい問題を追加
+                if (!quizDataBySubject[targetSubject]) {
+                    quizDataBySubject[targetSubject] = [];
+                }
+                quizDataBySubject[targetSubject].push(newQuestion);
+                alert('問題が保存されました！');
+                // 新規追加時はフォーム全体をリセット
+                resetAddQuestionForm(true);
+                populateAddQuestionSubjectSelect(); // 科目選択リストと問題リストを更新
+            }
+        });
+
+        // 問題追加フォームをリセット
+        // resetSubjectSelect: true の場合、科目選択も初期状態に戻す
+        function resetAddQuestionForm(resetSubjectSelect = true) {
+            addQuestionTextInput.value = '';
+            addQuestionImageURLInput.value = ''; // 問題画像URLもリセット
+            addCorrectAnswerInput.value = '';
+            addCorrectAnswerImageURLInput.value = ''; // 正解画像URLもリセット
+            resetIncorrectChoiceForm(); // 不正解選択肢の入力フォームもリセット
+            currentIncorrectChoicesForNewQuestion = []; // 現在の問題の不正解選択肢リストをクリア
+            updateIncorrectChoicesList(); // リスト表示を更新
+            editingQuestionIndex = null; // 編集状態を解除
+            editingSubject = null;
+            saveQuestionButton.textContent = '問題を保存'; // ボタンのテキストを元に戻す
+
+            if (resetSubjectSelect) {
+                // 科目選択ドロップダウンの状態を初期化
+                if (Object.keys(quizDataBySubject).length > 0) {
+                    // 既存の科目がある場合は最初の科目をデフォルトに設定
+                    addQuestionSubjectSelect.value = Object.keys(quizDataBySubject)[0];
+                    newSubjectNameInput.classList.add('hidden');
+                    newSubjectNameInput.disabled = true;
+                    newSubjectNameInput.setAttribute('aria-hidden', 'true');
+                    displayQuestionsForSubject(addQuestionSubjectSelect.value);
+                } else {
+                    // 既存の科目がない場合は「新しい科目を選択」をデフォルトに設定
+                    addQuestionSubjectSelect.value = '';
+                    newSubjectNameInput.classList.remove('hidden');
+                    newSubjectNameInput.disabled = false;
+                    newSubjectNameInput.removeAttribute('aria-hidden');
+                    displayQuestionsForSubject('');
+                }
+            } else {
+                // 科目選択をリセットしない場合、新しい科目名入力欄の表示/非表示を現在の選択に基づいて調整
+                if (addQuestionSubjectSelect.value === '') {
+                    newSubjectNameInput.classList.remove('hidden');
+                    newSubjectNameInput.disabled = false;
+                    newSubjectNameInput.removeAttribute('aria-hidden');
+                } else {
+                    newSubjectNameInput.classList.add('hidden');
+                    newSubjectNameInput.value = '';
+                    newSubjectNameInput.disabled = true;
+                    newSubjectNameInput.setAttribute('aria-hidden', 'true');
+                }
+                // 既存の問題リストも現在の選択に基づいて更新
+                displayQuestionsForSubject(addQuestionSubjectSelect.value);
+            }
+        }
+
+        // 「新規問題作成」ボタンのイベントリスナー
+        clearFormButton.addEventListener('click', () => resetAddQuestionForm(true)); // 科目選択もリセットする
+
+        // 問題追加・編集画面から科目選択に戻る
+        backFromAddQuestionButton.addEventListener('click', () => {
+            updateUIBasedOnAuth(); // 認証状態に基づいてUIを更新
+        });
+
+        // イベントリスナー
+        loginButton.addEventListener('click', login);
+        backFromLoginButton.addEventListener('click', updateUIBasedOnAuth); // ログイン画面から戻る
+        logoutButton.addEventListener('click', logout);
+        cornerLoginButton.addEventListener('click', () => showSection(loginSection)); // 隅のログインボタンでログイン画面を表示
+        nextButton.addEventListener('click', nextQuestion);
+        // 現在選択されている科目を使用してテストを再開
+        restartButton.addEventListener('click', () => startQuiz(currentSelectedSubject));
+        backToSubjectsButton.addEventListener('click', () => {
+            updateUIBasedOnAuth(); // 認証状態に基づいてUIを更新
+        });
+
+        // アプリケーション起動時にUIを認証状態に基づいて表示
+        window.onload = updateUIBasedOnAuth;
+    </script>
+</body>
+</html>
