@@ -546,12 +546,28 @@
         #question-section #next-button {
             margin-bottom: 2rem; /* 2行分の空白を想定して調整 */
         }
+
+        #loading-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
     <div id="confetti-container" class="confetti-container"></div>
     <div id="quiz-app" class="quiz-container">
         <h1 class="app-title">くりかえしテスト</h1>
+
+        <div id="loading-indicator" class="hidden">
+            <p>データを読み込み中...</p>
+        </div>
 
         <div id="login-section" class="hidden">
             <p class="section-title">ログイン</p>
@@ -635,321 +651,27 @@
         </div>
     </div>
 
-    <script>
-        // 問題データ構造: 科目ごとに問題を管理
-        // 各問題は 'question', 'questionImage', 'correctAnswer', 'incorrectChoices' を持つ
-        // correctAnswer は { text: string, image: string } 形式
-        // incorrectChoices は { text: string, image: string } の配列
-        let quizDataBySubject = {
-            "国語": [
-                {
-                    question: "夏目漱石の代表作は何ですか？",
-                    questionImage: "https://placehold.co/150x100/E0F2F7/000?text=夏目漱石",
-                    correctAnswer: { text: "吾輩は猫である", image: "https://placehold.co/80x50/D1FAE5/000?text=吾輩は猫である" },
-                    incorrectChoices: [
-                        { text: "坊っちゃん", image: "https://placehold.co/80x50/FEE2E2/000?text=坊っちゃん" },
-                        { text: "こころ", image: "https://placehold.co/80x50/FEE2E2/000?text=こころ" },
-                        { text: "草枕", image: "https://placehold.co/80x50/FEE2E2/000?text=草枕" },
-                        { text: "雪国", image: "https://placehold.co/80x50/FEE2E2/000?text=雪国" },
-                        { text: "羅生門", image: "https://placehold.co/80x50/FEE2E2/000?text=羅生門" },
-                        { text: "三四郎", image: "" },
-                        { text: "それから", image: "" },
-                        { text: "門", image: "" }
-                    ]
-                },
-                {
-                    question: "「徒然草」の作者は誰ですか？",
-                    questionImage: "",
-                    correctAnswer: { text: "吉田兼好", image: "https://placehold.co/80x50/D1FAE5/000?text=吉田兼好" },
-                    incorrectChoices: [
-                        { text: "清少納言", image: "https://placehold.co/80x50/FEE2E2/000?text=清少納言" },
-                        { text: "紫式部", image: "https://placehold.co/80x50/FEE2E2/000?text=紫式部" },
-                        { text: "鴨長明", image: "https://placehold.co/80x50/FEE2E2/000?text=鴨長明" },
-                        { text: "紀貫之", image: "https://placehold.co/80x50/FEE2E2/000?text=紀貫之" },
-                        { text: "兼好法師", image: "" },
-                        { text: "空海", image: "" },
-                        { text: "最澄", image: "" },
-                        { text: "源氏物語", image: "" }
-                    ]
-                },
-                {
-                    question: "俳句の季語は、何を表現するために使われますか？",
-                    questionImage: "",
-                    correctAnswer: { text: "季節", image: "https://placehold.co/80x50/D1FAE5/000?text=季節" },
-                    incorrectChoices: [
-                        { text: "感情", image: "https://placehold.co/80x50/FEE2E2/000?text=感情" },
-                        { text: "場所", image: "https://placehold.co/80x50/FEE2E2/000?text=場所" },
-                        { text: "時間", image: "https://placehold.co/80x50/FEE2E2/000?text=時間" },
-                        { text: "人物", image: "https://placehold.co/80x50/FEE2E2/000?text=人物" },
-                        { text: "天気", image: "" },
-                        { text: "色", image: "" },
-                        { text: "音", image: "" },
-                        { text: "匂い", image: "" }
-                    ]
-                },
-                {
-                    question: "「源氏物語」の主人公の名前は何ですか？",
-                    questionImage: "https://placehold.co/150x100/E0F2F7/000?text=源氏物語",
-                    correctAnswer: { text: "光源氏", image: "https://placehold.co/80x50/D1FAE5/000?text=光源氏" },
-                    incorrectChoices: [
-                        { text: "夕顔", image: "https://placehold.co/80x50/FEE2E2/000?text=夕顔" },
-                        { text: "葵の上", image: "https://placehold.co/80x50/FEE2E2/000?text=葵の上" },
-                        { text: "紫の上", image: "https://placehold.co/80x50/FEE2E2/000?text=紫の上" },
-                        { text: "明石の君", image: "https://placehold.co/80x50/FEE2E2/000?text=明石の君" },
-                        { text: "薫", image: "" },
-                        { text: "宇治十帖", image: "" },
-                        { text: "桐壺", image: "" },
-                        { text: "帚木", image: "" }
-                    ]
-                },
-                {
-                    question: "「枕草子」の作者は誰ですか？",
-                    questionImage: "",
-                    correctAnswer: { text: "清少納言", image: "https://placehold.co/80x50/D1FAE5/000?text=清少納言" },
-                    incorrectChoices: [
-                        { text: "紫式部", image: "https://placehold.co/80x50/FEE2E2/000?text=紫式部" },
-                        { text: "吉田兼好", image: "https://placehold.co/80x50/FEE2E2/000?text=吉田兼好" },
-                        { text: "鴨長明", image: "https://placehold.co/80x50/FEE2E2/000?text=鴨長明" },
-                        { text: "紀貫之", image: "https://placehold.co/80x50/FEE2E2/000?text=紀貫之" },
-                        { text: "小野小町", image: "" },
-                        { text: "和泉式部", image: "" },
-                        { text: "菅原道真", image: "" },
-                        { text: "藤原道長", image: "" }
-                    ]
-                }
-            ],
-            "数学": [
-                {
-                    question: "円周率の近似値は何ですか？",
-                    questionImage: "",
-                    correctAnswer: { text: "3.14", image: "https://placehold.co/80x50/D1FAE5/000?text=3.14" },
-                    incorrectChoices: [
-                        { text: "2.71", image: "https://placehold.co/80x50/FEE2E2/000?text=2.71" },
-                        { text: "1.61", image: "https://placehold.co/80x50/FEE2E2/000?text=1.61" },
-                        { text: "0.57", image: "https://placehold.co/80x50/FEE2E2/000?text=0.57" },
-                        { text: "3.00", image: "https://placehold.co/80x50/FEE2E2/000?text=3.00" },
-                        { text: "4.13", image: "https://placehold.co/80x50/FEE2E2/000?text=4.13" },
-                        { text: "3.14159", image: "" },
-                        { text: "3.1", image: "" },
-                        { text: "3.141", image: "" }
-                    ]
-                },
-                {
-                    question: "正三角形の内角の和は何°ですか？",
-                    questionImage: "https://placehold.co/150x100/E0F2F7/000?text=正三角形",
-                    correctAnswer: { text: "180", image: "https://placehold.co/80x50/D1FAE5/000?text=180°" },
-                    incorrectChoices: [
-                        { text: "90", image: "https://placehold.co/80x50/FEE2E2/000?text=90°" },
-                        { text: "270", image: "https://placehold.co/80x50/FEE2E2/000?text=270°" },
-                        { text: "360", image: "https://placehold.co/80x50/FEE2E2/000?text=360°" },
-                        { text: "45", image: "https://placehold.co/80x50/FEE2E2/000?text=45°" },
-                        { text: "60", image: "" },
-                        { text: "120", image: "" },
-                        { text: "240", image: "" },
-                        { text: "300", image: "" }
-                    ]
-                },
-                {
-                    question: "方程式 $2x + 5 = 11$ の $x$ の値は何ですか？",
-                    questionImage: "",
-                    correctAnswer: { text: "3", image: "https://placehold.co/80x50/D1FAE5/000?text=3" },
-                    incorrectChoices: [
-                        { text: "2", image: "https://placehold.co/80x50/FEE2E2/000?text=2" },
-                        { text: "4", image: "https://placehold.co/80x50/FEE2E2/000?text=4" },
-                        { text: "5", image: "https://placehold.co/80x50/FEE2E2/000?text=5" },
-                        { text: "6", image: "https://placehold.co/80x50/FEE2E2/000?text=6" },
-                        { text: "8", image: "" },
-                        { text: "1", image: "" },
-                        { text: "7", image: "" },
-                        { text: "9", image: "" }
-                    ]
-                },
-                {
-                    question: "直角三角形の最も長い辺の名前は何ですか？",
-                    questionImage: "https://placehold.co/150x100/E0F2F7/000?text=直角三角形",
-                    correctAnswer: { text: "斜辺", image: "https://placehold.co/80x50/D1FAE5/000?text=斜辺" },
-                    incorrectChoices: [
-                        { text: "底辺", image: "https://placehold.co/80x50/FEE2E2/000?text=底辺" },
-                        { text: "高さ", image: "https://placehold.co/80x50/FEE2E2/000?text=高さ" },
-                        { text: "対辺", image: "https://placehold.co/80x50/FEE2E2/000?text=対辺" },
-                        { text: "隣辺", image: "https://placehold.co/80x50/FEE2E2/000?text=隣辺" },
-                        { text: "直角", image: "" },
-                        { text: "頂点", image: "" },
-                        { text: "角", image: "" },
-                        { text: "辺", image: "" }
-                    ]
-                },
-                {
-                    question: "100の平方根は何ですか？",
-                    questionImage: "",
-                    correctAnswer: { text: "10", image: "https://placehold.co/80x50/D1FAE5/000?text=10" },
-                    incorrectChoices: [
-                        { text: "5", image: "https://placehold.co/80x50/FEE2E2/000?text=5" },
-                        { text: "20", image: "https://placehold.co/80x50/FEE2E2/000?text=20" },
-                        { text: "50", image: "https://placehold.co/80x50/FEE2E2/000?text=50" },
-                        { text: "1000", image: "https://placehold.co/80x50/FEE2E2/000?text=1000" },
-                        { text: "1", image: "" },
-                        { text: "25", image: "" },
-                        { text: "75", image: "" },
-                        { text: "100", image: "" }
-                    ]
-                }
-            ],
-            "理科": [
-                {
-                    question: "水が沸騰する温度は何℃ですか？",
-                    questionImage: "",
-                    correctAnswer: { text: "100", image: "https://placehold.co/80x50/D1FAE5/000?text=100℃" },
-                    incorrectChoices: [
-                        { text: "0", image: "https://placehold.co/80x50/FEE2E2/000?text=0℃" },
-                        { text: "50", image: "https://placehold.co/80x50/FEE2E2/000?text=50℃" },
-                        { text: "90", image: "https://placehold.co/80x50/FEE2E2/000?text=90℃" },
-                        { text: "120", image: "https://placehold.co/80x50/FEE2E2/000?text=120℃" },
-                        { text: "200", image: "" },
-                        { text: "25", image: "" },
-                        { text: "75", image: "" },
-                        { text: "150", image: "" }
-                    ]
-                },
-                {
-                    question: "植物が光合成を行うために必要なものは何ですか？",
-                    questionImage: "https://placehold.co/150x100/E0F2F7/000?text=光合成",
-                    correctAnswer: { text: "二酸化炭素", image: "https://placehold.co/80x50/D1FAE5/000?text=二酸化炭素" },
-                    incorrectChoices: [
-                        { text: "酸素", image: "https://placehold.co/80x50/FEE2E2/000?text=酸素" },
-                        { text: "窒素", image: "https://placehold.co/80x50/FEE2E2/000?text=窒素" },
-                        { text: "水", image: "https://placehold.co/80x50/FEE2E2/000?text=水" },
-                        { text: "土", image: "https://placehold.co/80x50/FEE2E2/000?text=土" },
-                        { text: "太陽", image: "" },
-                        { text: "光", image: "" },
-                        { text: "葉緑体", image: "" },
-                        { text: "栄養素", image: "" }
-                    ]
-                },
-                {
-                    question: "地球の自転によって何が起こりますか？",
-                    questionImage: "https://placehold.co/150x100/E0F2F7/000?text=地球",
-                    correctAnswer: { text: "昼と夜", image: "https://placehold.co/80x50/D1FAE5/000?text=昼と夜" },
-                    incorrectChoices: [
-                        { text: "季節の変化", image: "https://placehold.co/80x50/FEE2E2/000?text=季節の変化" },
-                        { text: "月の満ち欠け", image: "https://placehold.co/80x50/FEE2E2/000?text=月の満ち引き" },
-                        { text: "潮の満ち引き", image: "https://placehold.co/80x50/FEE2E2/000?text=潮の満ち引き" },
-                        { text: "地震", image: "https://placehold.co/80x50/FEE2E2/000?text=地震" },
-                        { text: "火山噴火", image: "" },
-                        { text: "台風", image: "" },
-                        { text: "津波", image: "" },
-                        { text: "彗星", image: "" }
-                    ]
-                },
-                {
-                    question: "酸性を示すpHの値は、一般的にどの範囲ですか？",
-                    questionImage: "",
-                    correctAnswer: { text: "7未満", image: "https://placehold.co/80x50/D1FAE5/000?text=pH<7" },
-                    incorrectChoices: [
-                        { text: "7より大きい", image: "https://placehold.co/80x50/FEE2E2/000?text=pH>7" },
-                        { text: "7", image: "https://placehold.co/80x50/FEE2E2/000?text=pH=7" },
-                        { text: "0", image: "https://placehold.co/80x50/FEE2E2/000?text=pH=0" },
-                        { text: "14", image: "https://placehold.co/80x50/FEE2E2/000?text=pH=14" },
-                        { text: "10", image: "" },
-                        { text: "1", image: "" },
-                        { text: "6", image: "" },
-                        { text: "8", image: "" }
-                    ]
-                },
-                {
-                    question: "人体で最も大きな臓器は何ですか？",
-                    questionImage: "",
-                    correctAnswer: { text: "皮膚", image: "https://placehold.co/80x50/D1FAE5/000?text=皮膚" },
-                    incorrectChoices: [
-                        { text: "肝臓", image: "https://placehold.co/80x50/FEE2E2/000?text=肝臓" },
-                        { text: "肺", image: "https://placehold.co/80x50/FEE2E2/000?text=肺" },
-                        { text: "心臓", image: "https://placehold.co/80x50/FEE2E2/000?text=心臓" },
-                        { text: "脳", image: "https://placehold.co/80x50/FEE2E2/000?text=脳" },
-                        { text: "胃", image: "" },
-                        { text: "腎臓", image: "" },
-                        { text: "膵臓", image: "" },
-                        { text: "脾臓", image: "" }
-                    ]
-                }
-            ],
-            "社会": [
-                {
-                    question: "日本の現在の元号は何ですか？",
-                    questionImage: "",
-                    correctAnswer: { text: "令和", image: "https://placehold.co/80x50/D1FAE5/000?text=令和" },
-                    incorrectChoices: [
-                        { text: "平成", image: "https://placehold.co/80x50/FEE2E2/000?text=平成" },
-                        { text: "昭和", image: "https://placehold.co/80x50/FEE2E2/000?text=昭和" },
-                        { text: "大正", image: "https://placehold.co/80x50/FEE2E2/000?text=大正" },
-                        { text: "明治", image: "https://placehold.co/80x50/FEE2E2/000?text=明治" },
-                        { text: "安政", image: "" },
-                        { text: "慶応", image: "" },
-                        { text: "弘化", image: "" },
-                        { text: "天保", image: "" }
-                    ]
-                },
-                {
-                    question: "日本の国会議事堂がある都市はどこですか？",
-                    questionImage: "https://placehold.co/150x100/E0F2F7/000?text=国会議事堂",
-                    correctAnswer: { text: "東京", image: "https://placehold.co/80x50/D1FAE5/000?text=東京" },
-                    incorrectChoices: [
-                        { text: "京都", image: "https://placehold.co/80x50/FEE2E2/000?text=京都" },
-                        { text: "大阪", image: "https://placehold.co/80x50/FEE2E2/000?text=大阪" },
-                        { text: "札幌", image: "https://placehold.co/80x50/FEE2E2/000?text=札幌" },
-                        { text: "福岡", image: "https://placehold.co/80x50/FEE2E2/000?text=福岡" },
-                        { text: "名古屋", image: "" },
-                        { text: "横浜", image: "" },
-                        { text: "仙台", image: "" },
-                        { text: "広島", image: "" }
-                    ]
-                },
-                {
-                    question: "世界で最も人口が多い国はどこですか？",
-                    questionImage: "",
-                    correctAnswer: { text: "インド", image: "https://placehold.co/80x50/D1FAE5/000?text=インド" },
-                    incorrectChoices: [
-                        { text: "中国", image: "https://placehold.co/80x50/FEE2E2/000?text=中国" },
-                        { text: "アメリカ", image: "https://placehold.co/80x50/FEE2E2/000?text=アメリカ" },
-                        { text: "インドネシア", image: "https://placehold.co/80x50/FEE2E2/000?text=インドネシア" },
-                        { text: "パキスタン", image: "https://placehold.co/80x50/FEE2E2/000?text=パキスタン" },
-                        { text: "ナイジェリア", image: "" },
-                        { text: "ブラジル", image: "" },
-                        { text: "ロシア", image: "" },
-                        { text: "バングラデシュ", image: "" }
-                    ]
-                },
-                {
-                    question: "第二次世界大戦が終結した年は西暦何年ですか？",
-                    questionImage: "",
-                    correctAnswer: { text: "1945", image: "https://placehold.co/80x50/D1FAE5/000?text=1945年" },
-                    incorrectChoices: [
-                        { text: "1939", image: "https://placehold.co/80x50/FEE2E2/000?text=1939年" },
-                        { text: "1918", image: "https://placehold.co/80x50/FEE2E2/000?text=1918年" },
-                        { text: "1950", image: "https://placehold.co/80x50/FEE2E2/000?text=1950年" },
-                        { text: "1960", image: "https://placehold.co/80x50/FEE2E2/000?text=1960年" },
-                        { text: "1941", image: "" },
-                        { text: "1942", image: "" },
-                        { text: "1943", image: "" },
-                        { text: "1944", image: "" }
-                    ]
-                },
-                {
-                    question: "日本の最高裁判所があるのはどこですか？",
-                    questionImage: "https://placehold.co/150x100/E0F2F7/000?text=最高裁判所",
-                    correctAnswer: { text: "東京", image: "https://placehold.co/80x50/D1FAE5/000?text=東京" },
-                    incorrectChoices: [
-                        { text: "京都", image: "https://placehold.co/80x50/FEE2E2/000?text=京都" },
-                        { text: "大阪", image: "https://placehold.co/80x50/FEE2E2/000?text=大阪" },
-                        { text: "広島", image: "https://placehold.co/80x50/FEE2E2/000?text=広島" },
-                        { text: "仙台", image: "https://placehold.co/80x50/FEE2E2/000?text=仙台" },
-                        { text: "那覇", image: "" },
-                        { text: "福岡", image: "" },
-                        { text: "名古屋", image: "" },
-                        { text: "横浜", image: "" }
-                    ]
-                }
-            ]
-        };
+    <script type="module">
+        // Firebase SDK のインポート
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // currentUser変数を一番上に移動して、ReferenceErrorを防ぐ
+        let currentUser = null; // アプリケーションレベルのユーザーID (管理者判定に使用)
+
+        // Firebase 初期化
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let userId = null; // Firebase認証のUID (Firestoreパスに使用)
+        let isAuthReady = false; // Firebase 認証が完了したかどうかのフラグ
+
+        // 問題データ構造: 科目ごとに問題を管理 (Firestoreからロードされる)
+        let quizDataBySubject = {}; // Firestoreからロードされるため、初期値は空
 
         let currentQuizQuestions = []; // 今回のテストで使用する5問
         let currentQuestionIndex = 0;
@@ -958,7 +680,7 @@
         let quizActive = false; // クイズがアクティブかどうかを示すフラグ
         let answeredQuestionsLog = []; // 回答履歴を保存
         let currentSelectedSubject = null; // 現在選択されている科目
-        let editingQuestionIndex = null; // 編集中の問題のインデックス (nullの場合は新規作成)
+        let editingQuestionId = null; // 編集中の問題のFirestoreドキュメントID (nullの場合は新規作成)
         let editingSubject = null; // 編集中の問題の科目
         let currentEditingIncorrectChoiceIndex = null; // 編集中の不正解選択肢のインデックス (nullの場合は新規追加)
 
@@ -968,7 +690,6 @@
         let timeLeft = quizDuration;
 
         // 認証関連変数
-        let currentUser = null; // 現在ログインしているユーザーID
         const adminUserIds = ["admin1", "admin2", "管理者"]; // 管理者として認識するユーザーIDのリスト
 
         // DOM要素の取得
@@ -1016,9 +737,19 @@
         const saveQuestionButton = document.getElementById('save-question-button');
         const backFromAddQuestionButton = document.getElementById('back-from-add-question-button');
         const confettiContainer = document.getElementById('confetti-container'); // 紙吹雪コンテナ
+        const loadingIndicator = document.getElementById('loading-indicator'); // ローディングインジケーター
 
         let currentIncorrectChoicesForNewQuestion = []; // { text: string, image: string } の配列
         let displayedChoices = []; // 表示される選択肢を保持するための配列 (クイズ出題時のみ使用)
+
+        // ローディング表示を制御する関数
+        function showLoading() {
+            loadingIndicator.classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            loadingIndicator.classList.add('hidden');
+        }
 
         // 画面表示を切り替えるヘルパー関数
         function showSection(sectionToShow) {
@@ -1040,6 +771,15 @@
 
         // UIを認証状態に基づいて更新する関数
         function updateUIBasedOnAuth() {
+            console.log("updateUIBasedOnAuth called. currentUser:", currentUser, "Type:", typeof currentUser); // デバッグログ
+            // 認証が完了していない場合は処理をスキップ
+            if (!isAuthReady) {
+                showLoading(); // 認証が完了するまでローディング表示
+                return;
+            } else {
+                hideLoading(); // 認証完了後、ローディング非表示
+            }
+
             // 常に科目選択画面を表示
             showSection(subjectSelectionSection);
             displaySubjectSelection(); // 科目選択画面のボタンを再描画
@@ -1063,14 +803,42 @@
             }
         }
 
+        // Firebase 認証状態の監視
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                userId = user.uid;
+                console.log("Authenticated as:", userId);
+            } else {
+                // ユーザーが認証されていない場合、匿名でサインインを試みる
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                        userId = auth.currentUser.uid;
+                        console.log("Signed in with custom token:", userId);
+                    } else {
+                        await signInAnonymously(auth);
+                        userId = auth.currentUser.uid;
+                        console.log("Signed in anonymously:", userId);
+                    }
+                } catch (error) {
+                    console.error("Firebase authentication failed:", error);
+                    // エラー発生時でもアプリを動かすためのフォールバックID
+                    userId = 'anonymous_user_' + crypto.randomUUID();
+                    alert('認証に失敗しました。一部機能が制限される可能性があります。');
+                }
+            }
+            isAuthReady = true; // 認証が完了したことを示すフラグを立てる
+            updateUIBasedOnAuth(); // 認証状態に基づいてUIを更新
+            setupFirestoreListeners(); // Firestoreリスナーを設定
+        });
+
         // ログイン処理
         function login() {
-            const userId = userIdInput.value.trim();
-            if (userId) {
-                currentUser = userId;
-                console.log('ログインユーザーID:', currentUser); // デバッグ用
-                console.log('管理者IDリスト:', adminUserIds); // デバッグ用
-                console.log('管理者か？:', adminUserIds.includes(currentUser)); // デバッグ用
+            const inputUserId = userIdInput.value.trim();
+            if (inputUserId) {
+                // ここではFirebaseの認証は行わず、ローカルでユーザーIDを管理
+                currentUser = inputUserId;
+                console.log('ログインユーザーID:', currentUser);
 
                 // ログイン後、管理者であれば問題追加・編集画面へ、そうでなければ科目選択画面へ
                 if (adminUserIds.includes(currentUser)) {
@@ -1092,6 +860,50 @@
             updateUIBasedOnAuth(); // ログアウト後、UIを更新して科目選択画面に戻る
         }
 
+        // Firestore リスナー設定
+        let unsubscribeSubjectListener = null;
+
+        async function setupFirestoreListeners() {
+            if (!isAuthReady || !userId) {
+                console.log("Auth not ready or userId not set, skipping Firestore listener setup.");
+                return;
+            }
+
+            // 科目コレクションへの参照
+            const subjectsCollectionRef = collection(db, `artifacts/${appId}/public/data/subjects`);
+
+            // 既存のリスナーがあれば解除
+            if (unsubscribeSubjectListener) {
+                unsubscribeSubjectListener();
+            }
+
+            // 科目データのリアルタイムリスナー
+            unsubscribeSubjectListener = onSnapshot(query(subjectsCollectionRef), (snapshot) => {
+                const newQuizDataBySubject = {};
+                snapshot.forEach((subjectDoc) => {
+                    const subjectName = subjectDoc.id; // ドキュメントIDを科目名として使用
+                    newQuizDataBySubject[subjectName] = []; // 問題は後でロードされる
+                });
+                quizDataBySubject = newQuizDataBySubject; // グローバルデータを更新
+                console.log("Subjects updated from Firestore:", Object.keys(quizDataBySubject));
+                displaySubjectSelection(); // 科目選択UIを更新
+
+                // 問題追加・編集画面が表示中の場合、科目選択ドロップダウンを更新
+                if (!addEditQuestionSection.classList.contains('hidden')) {
+                    populateAddQuestionSubjectSelect();
+                    // 編集中の科目があれば再選択を試みる
+                    if (editingSubject && quizDataBySubject[editingSubject]) {
+                        addQuestionSubjectSelect.value = editingSubject;
+                        displayQuestionsForSubject(editingSubject);
+                    } else {
+                        resetAddQuestionForm(true); // 現在の科目が削除された場合など、フォームをリセット
+                    }
+                }
+            }, (error) => {
+                console.error("Error fetching subjects from Firestore:", error);
+                alert('科目の読み込み中にエラーが発生しました。');
+            });
+        }
 
         // タイマー表示を更新する関数
         function updateTimerDisplay() {
@@ -1147,19 +959,30 @@
         function displaySubjectSelection() {
             subjectButtonsContainer.innerHTML = ''; // 既存のボタンをクリア
 
-            for (const subject in quizDataBySubject) {
-                // 科目名に対応する問題が0個の場合はボタンを表示しない
-                if (quizDataBySubject[subject].length > 0) {
-                    const button = document.createElement('button');
-                    button.textContent = subject;
-                    button.classList.add('subject-button');
-                    button.addEventListener('click', () => startQuiz(subject));
-                    subjectButtonsContainer.appendChild(button);
-                }
-            }
-            if (subjectButtonsContainer.innerHTML === '') {
+            const subjects = Object.keys(quizDataBySubject).sort(); // ソートして表示
+
+            if (subjects.length === 0) {
                 subjectButtonsContainer.innerHTML = '<p class="text-gray-500">問題が登録されている科目がありません。</p>';
+                return;
             }
+
+            subjects.forEach(subject => {
+                // Firestoreから問題をロードして、問題数が0でない場合のみボタンを表示
+                // このロジックはパフォーマンスに影響する可能性があるので注意が必要
+                // より良い方法は、科目ドキュメントに問題数を保持するフィールドを追加すること
+                const questionsCollectionRef = collection(db, `artifacts/${appId}/public/data/subjects/${subject}/questions`);
+                getDocs(questionsCollectionRef).then(querySnapshot => {
+                    if (!querySnapshot.empty) { // 問題が1つ以上ある場合のみボタンを表示
+                        const button = document.createElement('button');
+                        button.textContent = subject;
+                        button.classList.add('subject-button');
+                        button.addEventListener('click', () => startQuiz(subject));
+                        subjectButtonsContainer.appendChild(button);
+                    }
+                }).catch(error => {
+                    console.error(`Error checking questions for subject ${subject}:`, error);
+                });
+            });
         }
 
         // 問題をランダムに5問選択する関数
@@ -1424,24 +1247,47 @@
 
 
         // クイズをリセットして開始する関数
-        function startQuiz(subject) {
-            if (!quizDataBySubject[subject] || quizDataBySubject[subject].length === 0) {
-                alert('この科目には問題がありません。問題を追加してください。');
-                displaySubjectSelection(); // 科目選択に戻る
+        async function startQuiz(subject) {
+            if (!isAuthReady || !userId) {
+                alert('データを読み込むにはログインが必要です。');
                 return;
             }
-            currentSelectedSubject = subject; // 現在選択されている科目を保存
-            currentQuizQuestions = getRandomQuestions(quizDataBySubject[subject], 5);
-            currentQuestionIndex = 0;
-            score = 0;
-            selectedAnswer = null;
-            quizActive = true; // クイズ開始時にアクティブにする
-            answeredQuestionsLog = []; // 回答履歴をリセット
-            displayedChoices = []; // 新しいクイズ開始時に選択肢をリセット
+            showLoading(); // クイズ開始前にローディング表示
 
-            showSection(questionSection);
-            startTimer(); // クイズ開始時にタイマーを開始
-            loadQuestion();
+            try {
+                const questionsCollectionRef = collection(db, `artifacts/${appId}/public/data/subjects/${subject}/questions`);
+                const querySnapshot = await getDocs(questionsCollectionRef);
+                const allQuestions = [];
+                querySnapshot.forEach(doc => {
+                    allQuestions.push({ id: doc.id, ...doc.data() });
+                });
+
+                if (allQuestions.length === 0) {
+                    alert('この科目には問題がありません。問題を追加してください。');
+                    hideLoading();
+                    displaySubjectSelection(); // 科目選択に戻る
+                    return;
+                }
+
+                currentSelectedSubject = subject; // 現在選択されている科目を保存
+                currentQuizQuestions = getRandomQuestions(allQuestions, 5);
+                currentQuestionIndex = 0;
+                score = 0;
+                selectedAnswer = null;
+                quizActive = true; // クイズ開始時にアクティブにする
+                answeredQuestionsLog = []; // 回答履歴をリセット
+                displayedChoices = []; // 新しいクイズ開始時に選択肢をリセット
+
+                hideLoading(); // ローディング非表示
+                showSection(questionSection);
+                startTimer(); // クイズ開始時にタイマーを開始
+                loadQuestion();
+            } catch (error) {
+                console.error("Error starting quiz:", error);
+                alert('クイズの開始中にエラーが発生しました。');
+                hideLoading();
+                updateUIBasedOnAuth(); // エラー時は科目選択に戻る
+            }
         }
 
         // 問題追加・編集画面へ移動
@@ -1455,15 +1301,14 @@
         function populateAddQuestionSubjectSelect() {
             addQuestionSubjectSelect.innerHTML = '';
 
-            // Always add the "新しい科目を選択" option
+            // 「新しい科目を選択」オプションを常に追加
             const newSubjectOption = document.createElement('option');
             newSubjectOption.value = '';
             newSubjectOption.textContent = '新しい科目を選択';
             addQuestionSubjectSelect.appendChild(newSubjectOption);
 
-            // Sort subjects alphabetically for consistent display
+            // 既存の科目名をソートして追加
             const sortedSubjects = Object.keys(quizDataBySubject).sort();
-
             sortedSubjects.forEach(subject => {
                 const option = document.createElement('option');
                 option.value = subject;
@@ -1471,20 +1316,20 @@
                 addQuestionSubjectSelect.appendChild(option);
             });
 
-            // Set initial selection and visibility based on whether subjects exist
-            addQuestionSubjectSelect.removeEventListener('change', handleSubjectSelectChange); // Prevent duplicate listeners
+            // イベントリスナーを一度だけ追加
+            addQuestionSubjectSelect.removeEventListener('change', handleSubjectSelectChange);
             addQuestionSubjectSelect.addEventListener('change', handleSubjectSelectChange);
 
-            // Initial state for newSubjectNameInput and existing questions list
+            // 初期状態の設定
             if (sortedSubjects.length > 0) {
-                addQuestionSubjectSelect.value = sortedSubjects[0]; // Select the first existing subject
+                addQuestionSubjectSelect.value = sortedSubjects[0]; // 最初の既存科目を選択
                 newSubjectNameGroup.classList.add('hidden');
-                newSubjectNameInput.value = ''; // Clear new subject name
+                newSubjectNameInput.value = '';
                 newSubjectNameInput.disabled = true;
                 newSubjectNameInput.setAttribute('aria-hidden', 'true');
                 displayQuestionsForSubject(addQuestionSubjectSelect.value); // 最初の科目の問題を表示
             } else {
-                addQuestionSubjectSelect.value = ''; // Select the "新しい科目を選択" option
+                addQuestionSubjectSelect.value = ''; // 「新しい科目を選択」をデフォルトに
                 newSubjectNameGroup.classList.remove('hidden');
                 newSubjectNameInput.disabled = false;
                 newSubjectNameInput.removeAttribute('aria-hidden');
@@ -1494,19 +1339,18 @@
 
         // 科目選択ドロップダウンの変更ハンドラ
         function handleSubjectSelectChange() {
-            // 科目変更時にフォームをリセットするが、科目選択自体はリセットしない
-            const currentSelectedValue = addQuestionSubjectSelect.value; // ユーザーが選択した値を一時的に保持
+            const currentSelectedValue = addQuestionSubjectSelect.value;
             resetAddQuestionForm(false); // フォームをリセット (科目選択はリセットしない)
             addQuestionSubjectSelect.value = currentSelectedValue; // ユーザーが選択した値を再設定
 
-            if (addQuestionSubjectSelect.value === '') { // This means "新しい科目を選択" is selected
+            if (addQuestionSubjectSelect.value === '') { // 「新しい科目を選択」が選ばれた場合
                 newSubjectNameGroup.classList.remove('hidden');
                 newSubjectNameInput.disabled = false;
                 newSubjectNameInput.removeAttribute('aria-hidden');
                 displayQuestionsForSubject(''); // 新しい科目なので既存問題リストはクリア
             } else {
                 newSubjectNameGroup.classList.add('hidden');
-                newSubjectNameInput.value = ''; // Clear new subject name if an existing one is selected
+                newSubjectNameInput.value = '';
                 newSubjectNameInput.disabled = true;
                 newSubjectNameInput.setAttribute('aria-hidden', 'true');
                 displayQuestionsForSubject(addQuestionSubjectSelect.value); // 選択された科目の問題を表示
@@ -1514,77 +1358,144 @@
         }
 
         // 選択された科目の既存問題をリスト表示する関数
-        function displayQuestionsForSubject(subject) {
+        async function displayQuestionsForSubject(subject) {
             existingQuestionsList.innerHTML = ''; // 既存のリストをクリア
 
-            if (!subject || !quizDataBySubject[subject] || quizDataBySubject[subject].length === 0) {
-                existingQuestionsList.textContent = 'この科目には問題がありません。';
+            if (!subject) {
+                existingQuestionsList.textContent = '科目を選択してください。';
                 return;
             }
 
-            quizDataBySubject[subject].forEach((questionData, index) => {
-                const item = document.createElement('div');
-                item.classList.add('add-question-list-item');
-                // 問題画像がある場合のみ表示
-                const questionImgHtml = questionData.questionImage && questionData.questionImage.trim() !== ''
-                    ? `<img src="${questionData.questionImage}" onerror="this.style.display='none';" class="result-item-image mr-2" alt="問題画像">`
-                    : '';
-                item.innerHTML = `
-                    <div> ${questionImgHtml}
-                        <span>${questionData.question.substring(0, 30)}${questionData.question.length > 30 ? '...' : ''}</span>
-                    </div>
-                    <div> <button class="list-action-button edit-button" data-index="${index}">編集</button>
-                        <button class="list-action-button delete-button" data-index="${index}">削除</button>
-                    </div>
-                `;
-                item.querySelector('.edit-button').addEventListener('click', (e) => {
-                    editQuestion(subject, parseInt(e.target.dataset.index));
+            if (!isAuthReady || !userId) {
+                existingQuestionsList.textContent = 'データを読み込むにはログインが必要です。';
+                return;
+            }
+            showLoading(); // 問題リスト読み込み中にローディング表示
+
+            try {
+                const questionsCollectionRef = collection(db, `artifacts/${appId}/public/data/subjects/${subject}/questions`);
+                const querySnapshot = await getDocs(query(questionsCollectionRef));
+                const questionsArray = [];
+                querySnapshot.forEach(doc => {
+                    questionsArray.push({ id: doc.id, ...doc.data() });
                 });
-                item.querySelector('.delete-button').addEventListener('click', (e) => {
-                    deleteQuestion(subject, parseInt(e.target.dataset.index));
-                });
-                existingQuestionsList.appendChild(item);
-            });
-        }
 
-        // 問題を編集フォームに読み込む関数
-        function editQuestion(subject, index) {
-            resetAddQuestionForm(false); // フォームをリセットするが、科目選択はリセットしない
-            editingQuestionIndex = index;
-            editingSubject = subject; // 編集中の科目を保存
+                // ローカルのquizDataBySubjectを更新 (編集画面用)
+                quizDataBySubject[subject] = questionsArray;
 
-            const questionData = quizDataBySubject[subject][index];
-            addQuestionTextInput.value = questionData.question;
-            addQuestionImageURLInput.value = questionData.questionImage || ''; // 画像URLをセット
-            addCorrectAnswerInput.value = questionData.correctAnswer.text;
-            addCorrectAnswerImageURLInput.value = questionData.correctAnswer.image || ''; // 画像URLをセット
-            currentIncorrectChoicesForNewQuestion = [...questionData.incorrectChoices]; // コピーして編集
-            updateIncorrectChoicesList();
-
-            saveQuestionButton.textContent = '問題を更新';
-            addQuestionSubjectSelect.value = subject; // 編集中の科目をドロップダウンに設定
-
-            // 既存の科目を選択しているので、新しい科目名入力欄は非表示・無効化
-            newSubjectNameGroup.classList.add('hidden');
-            newSubjectNameInput.value = ''; // 念のためクリア
-            newSubjectNameInput.disabled = true;
-            newSubjectNameInput.setAttribute('aria-hidden', 'true');
-        }
-
-        // 問題を削除する関数
-        function deleteQuestion(subject, index) {
-            if (confirm('この問題を削除してもよろしいですか？')) {
-                quizDataBySubject[subject].splice(index, 1);
-                // もし科目に問題が一つもなくなった場合、その科目をデータから削除する
-                if (quizDataBySubject[subject].length === 0) {
-                    delete quizDataBySubject[subject];
+                if (questionsArray.length === 0) {
+                    existingQuestionsList.textContent = 'この科目には問題がありません。';
+                    hideLoading();
+                    return;
                 }
-                alert('問題を削除しました。');
-                populateAddQuestionSubjectSelect(); // 科目選択ドロップダウンを再描画
-                resetAddQuestionForm(); // フォームをリセット
+
+                questionsArray.forEach((questionData) => {
+                    const item = document.createElement('div');
+                    item.classList.add('add-question-list-item');
+                    const questionImgHtml = questionData.questionImage && questionData.questionImage.trim() !== ''
+                        ? `<img src="${questionData.questionImage}" onerror="this.style.display='none';" class="result-item-image mr-2" alt="問題画像">`
+                        : '';
+                    item.innerHTML = `
+                        <div> ${questionImgHtml}
+                            <span>${questionData.question.substring(0, 30)}${questionData.question.length > 30 ? '...' : ''}</span>
+                        </div>
+                        <div> <button class="list-action-button edit-button" data-id="${questionData.id}">編集</button>
+                            <button class="list-action-button delete-button" data-id="${questionData.id}">削除</button>
+                        </div>
+                    `;
+                    item.querySelector('.edit-button').addEventListener('click', (e) => {
+                        editQuestion(subject, e.target.dataset.id); // Firestore doc IDを渡す
+                    });
+                    item.querySelector('.delete-button').addEventListener('click', (e) => {
+                        deleteQuestion(subject, e.target.dataset.id); // Firestore doc IDを渡す
+                    });
+                    existingQuestionsList.appendChild(item);
+                });
+                hideLoading(); // ローディング非表示
+            } catch (error) {
+                console.error("Error fetching questions for subject:", subject, error);
+                existingQuestionsList.textContent = '問題の読み込み中にエラーが発生しました。';
+                alert('問題の読み込み中にエラーが発生しました。');
+                hideLoading();
             }
         }
 
+        // 問題を編集フォームに読み込む関数
+        async function editQuestion(subject, questionId) {
+            if (!isAuthReady || !userId) {
+                alert('ログインが必要です。');
+                return;
+            }
+            showLoading(); // 編集フォーム読み込み中にローディング表示
+
+            resetAddQuestionForm(false); // フォームをリセットするが、科目選択はリセットしない
+            editingQuestionId = questionId; // FirestoreドキュメントIDを保存
+            editingSubject = subject; // 編集中の科目を保存
+
+            try {
+                const questionDocRef = doc(db, `artifacts/${appId}/public/data/subjects/${subject}/questions`, questionId);
+                const questionDoc = await getDoc(questionDocRef);
+
+                if (questionDoc.exists()) {
+                    const questionData = questionDoc.data();
+                    addQuestionTextInput.value = questionData.question;
+                    addQuestionImageURLInput.value = questionData.questionImage || '';
+                    addCorrectAnswerInput.value = questionData.correctAnswer.text;
+                    addCorrectAnswerImageURLInput.value = questionData.correctAnswer.image || '';
+                    currentIncorrectChoicesForNewQuestion = [...questionData.incorrectChoices];
+                    updateIncorrectChoicesList();
+
+                    saveQuestionButton.textContent = '問題を更新';
+                    addQuestionSubjectSelect.value = subject; // 編集中の科目をドロップダウンに設定
+
+                    newSubjectNameGroup.classList.add('hidden');
+                    newSubjectNameInput.value = '';
+                    newSubjectNameInput.disabled = true;
+                    newSubjectNameInput.setAttribute('aria-hidden', 'true');
+                } else {
+                    alert('問題が見つかりませんでした。');
+                    resetAddQuestionForm(true);
+                }
+                hideLoading(); // ローディング非表示
+            } catch (error) {
+                console.error("Error editing question:", error);
+                alert('問題の読み込み中にエラーが発生しました。');
+                hideLoading();
+            }
+        }
+
+        // 問題を削除する関数
+        async function deleteQuestion(subject, questionId) {
+            if (!isAuthReady || !userId) {
+                alert('ログインが必要です。');
+                return;
+            }
+
+            if (confirm('この問題を削除してもよろしいですか？')) {
+                showLoading(); // 削除中にローディング表示
+                try {
+                    const questionDocRef = doc(db, `artifacts/${appId}/public/data/subjects/${subject}/questions`, questionId);
+                    await deleteDoc(questionDocRef);
+                    alert('問題を削除しました。');
+
+                    // 科目に問題が一つもなくなった場合、その科目ドキュメントも削除する
+                    const questionsCollectionRef = collection(db, `artifacts/${appId}/public/data/subjects/${subject}/questions`);
+                    const querySnapshot = await getDocs(query(questionsCollectionRef));
+                    if (querySnapshot.empty) {
+                        const subjectDocRef = doc(db, `artifacts/${appId}/public/data/subjects`, subject);
+                        await deleteDoc(subjectDocRef);
+                        console.log(`Subject '${subject}' deleted as it has no more questions.`);
+                    }
+
+                    resetAddQuestionForm(true); // フォームをリセットし、科目・問題リストを更新
+                    hideLoading(); // ローディング非表示
+                } catch (error) {
+                    console.error("Error deleting question:", error);
+                    alert('問題の削除中にエラーが発生しました。');
+                    hideLoading();
+                }
+            }
+        }
 
         // 不正解選択肢リストを更新 (現在の入力フォーム用)
         function updateIncorrectChoicesList() {
@@ -1702,7 +1613,13 @@
 
 
         // 問題を保存/更新
-        saveQuestionButton.addEventListener('click', () => {
+        saveQuestionButton.addEventListener('click', async () => {
+            if (!isAuthReady || !userId) {
+                alert('ログインが必要です。');
+                return;
+            }
+            showLoading(); // 保存中にローディング表示
+
             let targetSubject = addQuestionSubjectSelect.value;
             const newSubject = newSubjectNameInput.value.trim();
             const questionText = addQuestionTextInput.value.trim();
@@ -1712,48 +1629,53 @@
             const incorrectChoices = currentIncorrectChoicesForNewQuestion;
 
             // 新しい科目名が入力された場合の処理
-            if (targetSubject === '' && newSubject !== '') { // "新しい科目を選択"が選ばれ、新しい科目名が入力された場合
+            if (targetSubject === '' && newSubject !== '') { // 「新しい科目を選択」が選ばれ、新しい科目名が入力された場合
                 targetSubject = newSubject;
-                if (quizDataBySubject[targetSubject]) {
-                    alert('その新しい科目は既に存在します。');
-                    return;
-                }
-                quizDataBySubject[targetSubject] = []; // 新しい科目を初期化
-            } else if (targetSubject === '' && newSubject === '') { // "新しい科目を選択"が選ばれたが、新しい科目名が入力されていない場合
+                // ここで重複チェックは不要。FirestoreのsetDocで新しいドキュメントが作成される
+            } else if (targetSubject === '' && newSubject === '') { // 「新しい科目を選択」が選ばれたが、新しい科目名が入力されていない場合
                 alert('科目を選択するか、新しい科目名を入力してください。');
+                hideLoading();
                 return;
             }
 
             // 問題をテストに出題するために、最低4つの不正解選択肢が必要 (正解1 + 不正解4 = 計5選択肢)
             if (!questionText || !correctAnswerText || incorrectChoices.length < 4) {
                 alert('問題文、正解、および少なくとも4つの不正解選択肢を入力してください。');
+                hideLoading();
                 return;
             }
 
-            const newQuestion = {
+            const newQuestionData = {
                 question: questionText,
                 questionImage: questionImage,
                 correctAnswer: { text: correctAnswerText, image: correctAnswerImage },
                 incorrectChoices: incorrectChoices
             };
 
-            if (editingQuestionIndex !== null && editingSubject === targetSubject) {
-                // 既存の問題を更新
-                quizDataBySubject[targetSubject][editingQuestionIndex] = newQuestion;
-                alert('問題が更新されました！');
-                // 問題更新時は科目選択をリセットしないが、既存問題リストは更新する
-                resetAddQuestionForm(false);
-                displayQuestionsForSubject(targetSubject);
-            } else {
-                // 新しい問題を追加
-                if (!quizDataBySubject[targetSubject]) {
-                    quizDataBySubject[targetSubject] = [];
+            try {
+                // 科目ドキュメントが存在することを確認 (存在しない場合は作成)
+                const subjectDocRef = doc(db, `artifacts/${appId}/public/data/subjects`, targetSubject);
+                await setDoc(subjectDocRef, { name: targetSubject }, { merge: true }); // nameフィールドは必須ではないが、分かりやすさのために追加
+
+                const questionsCollectionRef = collection(db, `artifacts/${appId}/public/data/subjects/${targetSubject}/questions`);
+
+                if (editingQuestionId) {
+                    // 既存の問題を更新
+                    const questionDocRef = doc(questionsCollectionRef, editingQuestionId);
+                    await updateDoc(questionDocRef, newQuestionData);
+                    alert('問題が更新されました！');
+                } else {
+                    // 新しい問題を追加
+                    await addDoc(questionsCollectionRef, newQuestionData);
+                    alert('問題が保存されました！');
                 }
-                quizDataBySubject[targetSubject].push(newQuestion);
-                alert('問題が保存されました！');
-                // 新規追加時はフォーム全体をリセットし、科目選択リストも再描画
-                resetAddQuestionForm(true);
-                populateAddQuestionSubjectSelect();
+
+                resetAddQuestionForm(true); // フォームをリセットし、科目・問題リストを更新
+                hideLoading(); // ローディング非表示
+            } catch (error) {
+                console.error("Error saving question:", error);
+                alert('問題の保存中にエラーが発生しました。');
+                hideLoading();
             }
         });
 
@@ -1767,7 +1689,7 @@
             resetIncorrectChoiceForm(); // 不正解選択肢の入力フォームもリセット
             currentIncorrectChoicesForNewQuestion = []; // 現在の問題の不正解選択肢リストをクリア
             updateIncorrectChoicesList(); // リスト表示を更新
-            editingQuestionIndex = null; // 編集状態を解除
+            editingQuestionId = null; // 編集状態を解除 (Firestore IDをクリア)
             editingSubject = null;
             saveQuestionButton.textContent = '問題を保存'; // ボタンのテキストを元に戻す
 
@@ -1811,8 +1733,8 @@
             updateUIBasedOnAuth(); // 認証状態に基づいてUIを更新
         });
 
-        // アプリケーション起動時にUIを認証状態に基づいて表示
-        window.onload = updateUIBasedOnAuth;
+        // アプリケーション起動時にUIを認証状態に基づいて表示 (Firebase初期化後に自動的に呼び出される)
+        // window.onload = updateUIBasedOnAuth; // onAuthStateChanged で呼び出されるため不要
     </script>
 </body>
 </html>
