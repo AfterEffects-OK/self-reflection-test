@@ -778,26 +778,22 @@
                 hideLoading(); // 認証完了後、ローディング非表示
             }
 
-            // 常に科目選択画面を表示
-            showSection(subjectSelectionSection);
-            displaySubjectSelection(); // 科目選択画面のボタンを再描画
+            if (currentUser) { // If a local user ID is set (meaning they've "logged in" to the app)
+                showSection(subjectSelectionSection);
+                displaySubjectSelection(); // 科目選択画面のボタンを再描画
+                cornerLoginButton.classList.add('hidden');
+                logoutButton.classList.remove('hidden');
 
-            if (currentUser) {
-                // ログイン済みの場合
-                cornerLoginButton.classList.add('hidden'); // 隅のログインボタンを非表示
-                logoutButton.classList.remove('hidden'); // ログアウトボタンを表示
-
-                // 管理者かどうかで「問題を追加・編集」ボタンの表示を切り替える
                 if (adminUserIds.includes(currentUser)) {
                     goToAddQuestionButton.classList.remove('hidden');
                 } else {
                     goToAddQuestionButton.classList.add('hidden');
                 }
-            } else {
-                // 未ログインの場合
-                cornerLoginButton.classList.remove('hidden'); // 隅のログインボタンを表示
-                logoutButton.classList.add('hidden'); // ログアウトボタンを非表示
-                goToAddQuestionButton.classList.add('hidden'); // 問題追加・編集ボタンを非表示
+            } else { // If no local user ID is set, show the login screen
+                showSection(loginSection); // Explicitly show login section
+                cornerLoginButton.classList.remove('hidden'); // Ensure corner login button is visible for anonymous users
+                logoutButton.classList.add('hidden');
+                goToAddQuestionButton.classList.add('hidden');
             }
         }
 
