@@ -1448,10 +1448,10 @@
         function populateAddQuestionSubjectSelect() {
             addQuestionSubjectSelect.innerHTML = '';
 
-            // Always add the "新しい科目を選択" option
+            // Always add the "新しい科目を追加" option
             const newSubjectOption = document.createElement('option');
             newSubjectOption.value = '';
-            newSubjectOption.textContent = '新しい科目を選択';
+            newSubjectOption.textContent = '新しい科目を追加';
             addQuestionSubjectSelect.appendChild(newSubjectOption);
 
             for (const subject in quizDataBySubject) {
@@ -1473,7 +1473,7 @@
                 newSubjectNameInput.setAttribute('aria-hidden', 'true');
                 displayQuestionsForSubject(addQuestionSubjectSelect.value); // 最初の科目の問題を表示
             } else {
-                addQuestionSubjectSelect.value = ''; // Select the "新しい科目を選択" option
+                addQuestionSubjectSelect.value = ''; // Select the "新しい科目を追加" option
                 newSubjectNameInput.classList.remove('hidden');
                 newSubjectNameInput.disabled = false;
                 newSubjectNameInput.removeAttribute('aria-hidden');
@@ -1488,7 +1488,7 @@
             resetAddQuestionForm(true); // 科目選択もリセットするように変更
             addQuestionSubjectSelect.value = currentSelectedValue; // ユーザーが選択した値を再設定
 
-            if (addQuestionSubjectSelect.value === '') { // This means "新しい科目を選択" is selected
+            if (addQuestionSubjectSelect.value === '') { // This means "新しい科目を追加" is selected
                 newSubjectNameInput.classList.remove('hidden');
                 newSubjectNameInput.disabled = false;
                 newSubjectNameInput.removeAttribute('aria-hidden');
@@ -1697,14 +1697,14 @@
             const incorrectChoices = currentIncorrectChoicesForNewQuestion;
 
             let targetSubject = selectedSubject;
-            if (selectedSubject === '' && newSubject !== '') { // "新しい科目を選択"が選ばれ、新しい科目名が入力された場合
+            if (selectedSubject === '' && newSubject !== '') { // "新しい科目を追加"が選ばれ、新しい科目名が入力された場合
                 targetSubject = newSubject;
                 if (quizDataBySubject[targetSubject]) {
                     alert('その新しい科目は既に存在します。');
                     return;
                 }
                 quizDataBySubject[targetSubject] = []; // 新しい科目を初期化
-            } else if (selectedSubject === '' && newSubject === '') { // "新しい科目を選択"が選ばれたが、新しい科目名が入力されていない場合
+            } else if (selectedSubject === '' && newSubject === '') { // "新しい科目を追加"が選ばれたが、新しい科目名が入力されていない場合
                 alert('科目を選択するか、新しい科目名を入力してください。');
                 return;
             }
@@ -1766,7 +1766,7 @@
                     newSubjectNameInput.setAttribute('aria-hidden', 'true');
                     displayQuestionsForSubject(addQuestionSubjectSelect.value);
                 } else {
-                    // 既存の科目がない場合は「新しい科目を選択」をデフォルトに設定
+                    // 既存の科目がない場合は「新しい科目を追加」をデフォルトに設定
                     addQuestionSubjectSelect.value = '';
                     newSubjectNameInput.classList.remove('hidden');
                     newSubjectNameInput.disabled = false;
