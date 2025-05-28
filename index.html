@@ -957,29 +957,39 @@
         function displaySubjectSelection() {
             subjectButtonsContainer.innerHTML = ''; // 既存のボタンをクリア
 
-            const subjects = Object.keys(quizDataBySubject).sort(); // ソートして表示
+            const subjects = Object.keys(quizDataBySubject).sort();
 
             if (subjects.length === 0) {
                 subjectButtonsContainer.innerHTML = '<p class="text-gray-500">問題が登録されている科目がありません。</p>';
                 return;
             }
 
-            subjects.forEach(subject => {
-                // Firestoreから問題をロードして、問題数が0でない場合のみボタンを表示
-                // このロジックはパフォーマンスに影響する可能性があるので注意が必要
-                // より良い方法は、科目ドキュメントに問題数を保持するフィールドを追加すること
+            let hasVisibleSubjects = false; // 少なくとも1つの科目ボタンが追加されたかどうかを追跡
+
+            // すべての科目の問題数を非同期で確認し、Promise.all で待機
+            const subjectPromises = subjects.map(subject => {
                 const questionsCollectionRef = collection(db, `artifacts/${appId}/public/data/subjects/${subject}/questions`);
-                getDocs(questionsCollectionRef).then(querySnapshot => {
-                    if (!querySnapshot.empty) { // 問題が1つ以上ある場合のみボタンを表示
+                return getDocs(questionsCollectionRef).then(querySnapshot => {
+                    if (!querySnapshot.empty) { // 問題が1つ以上ある場合のみボタンを追加
+                        hasVisibleSubjects = true; // 少なくとも1つの科目で問題が見つかった
                         const button = document.createElement('button');
                         button.textContent = subject;
                         button.classList.add('subject-button');
                         button.addEventListener('click', () => startQuiz(subject));
-                        subjectButtonsContainer.appendChild(button);
+                        subjectButtonsContainer.appendChild(button); // ボタンを直接追加
                     }
                 }).catch(error => {
                     console.error(`Error checking questions for subject ${subject}:`, error);
+                    return null; // エラーが発生してもPromise.allが完了するようにnullを返す
                 });
+            });
+
+            // すべての非同期チェックが完了した後に、最終的な表示を決定
+            Promise.all(subjectPromises).then(() => {
+                if (!hasVisibleSubjects) {
+                    // どの科目にも問題が見つからなかった場合、メッセージを表示
+                    subjectButtonsContainer.innerHTML = '<p class="text-gray-500">問題が登録されている科目がありません。</p>';
+                }
             });
         }
 
