@@ -363,7 +363,7 @@
         .add-question-form .incorrect-choice-item > div:last-child { /* The button wrapper */
             display: flex;
             align-items: center;
-            gap: 0.5rem; /* Gap between buttons */
+            gap: 0.5rem;
             flex-shrink: 0; /* Prevent buttons from shrinking */
         }
         .add-question-form .incorrect-choice-item span {
@@ -533,20 +533,18 @@
             background-color: #E5E7EB; /* Darker gray on hover (Tailwind gray-200) */
         }
 
-        /* 一番下のボタンの下に空白を追加 */
+        /* 各セクションの最後のボタンの下に空白を追加 */
+        #result-section #back-to-subjects-button {
+            margin-bottom: 2rem; /* 2行分の空白を想定して調整 */
+        }
+
+        #add-edit-question-section #back-from-add-question-button {
+            margin-bottom: 2rem; /* 2行分の空白を想定して調整 */
+        }
+
         /* 問題セクションの「回答する/次の問題へ」ボタンの下に空白を追加 */
         #question-section #next-button {
-            margin-bottom: 5rem; /* 5行分の空白を想定して調整 */
-        }
-
-        /* 結果セクションの最後のボタンの下にマージンを追加 */
-        #result-section #back-to-subjects-button {
-            margin-bottom: 5rem; /* 5行分の空白を想定して調整 */
-        }
-
-        /* 問題追加・編集セクションの最後のボタンの下に空白を追加 */
-        #add-edit-question-section #back-from-add-question-button {
-            margin-bottom: 5rem; /* 5行分の空白を想定して調整 */
+            margin-bottom: 2rem; /* 2行分の空白を想定して調整 */
         }
     </style>
 </head>
@@ -598,8 +596,10 @@
                 <select id="add-question-subject-select" class="w-full p-2 border rounded">
                     </select>
 
-                <label for="new-subject-name" class="mt-2">新しい科目名 (既存の科目を選択しない場合):</label>
-                <input type="text" id="new-subject-name" placeholder="例: 歴史" class="w-full p-2 border rounded">
+                <div id="new-subject-name-group">
+                    <label for="new-subject-name" class="mt-2">新しい科目名 (既存の科目を選択しない場合):</label>
+                    <input type="text" id="new-subject-name" placeholder="例: 歴史" class="w-full p-2 border rounded">
+                </div>
 
                 <div id="existing-questions-list-container" class="mt-4">
                     <p class="font-bold text-gray-700 mb-2">既存の問題:</p>
@@ -999,6 +999,7 @@
 
         const addEditQuestionSection = document.getElementById('add-edit-question-section');
         const addQuestionSubjectSelect = document.getElementById('add-question-subject-select');
+        const newSubjectNameGroup = document.getElementById('new-subject-name-group'); // 新しい科目名入力欄のグループ
         const newSubjectNameInput = document.getElementById('new-subject-name');
         const existingQuestionsListContainer = document.getElementById('existing-questions-list-container');
         const existingQuestionsList = document.getElementById('existing-questions-list');
@@ -1075,7 +1076,7 @@
                 if (adminUserIds.includes(currentUser)) {
                     showSection(addEditQuestionSection);
                     populateAddQuestionSubjectSelect();
-                    resetAddQuestionForm();
+                    resetAddQuestionForm(); // ログイン時は常にフォームをリセット
                 } else {
                     updateUIBasedOnAuth(); // 非管理者は科目選択画面へ
                 }
@@ -1147,11 +1148,17 @@
             subjectButtonsContainer.innerHTML = ''; // 既存のボタンをクリア
 
             for (const subject in quizDataBySubject) {
-                const button = document.createElement('button');
-                button.textContent = subject;
-                button.classList.add('subject-button');
-                button.addEventListener('click', () => startQuiz(subject));
-                subjectButtonsContainer.appendChild(button);
+                // 科目名に対応する問題が0個の場合はボタンを表示しない
+                if (quizDataBySubject[subject].length > 0) {
+                    const button = document.createElement('button');
+                    button.textContent = subject;
+                    button.classList.add('subject-button');
+                    button.addEventListener('click', () => startQuiz(subject));
+                    subjectButtonsContainer.appendChild(button);
+                }
+            }
+            if (subjectButtonsContainer.innerHTML === '') {
+                subjectButtonsContainer.innerHTML = '<p class="text-gray-500">問題が登録されている科目がありません。</p>';
             }
         }
 
@@ -1448,33 +1455,37 @@
         function populateAddQuestionSubjectSelect() {
             addQuestionSubjectSelect.innerHTML = '';
 
-            // Always add the "新しい科目を追加" option
+            // Always add the "新しい科目を選択" option
             const newSubjectOption = document.createElement('option');
             newSubjectOption.value = '';
-            newSubjectOption.textContent = '新しい科目を追加';
+            newSubjectOption.textContent = '新しい科目を選択';
             addQuestionSubjectSelect.appendChild(newSubjectOption);
 
-            for (const subject in quizDataBySubject) {
+            // Sort subjects alphabetically for consistent display
+            const sortedSubjects = Object.keys(quizDataBySubject).sort();
+
+            sortedSubjects.forEach(subject => {
                 const option = document.createElement('option');
                 option.value = subject;
                 option.textContent = subject;
                 addQuestionSubjectSelect.appendChild(option);
-            }
+            });
 
             // Set initial selection and visibility based on whether subjects exist
             addQuestionSubjectSelect.removeEventListener('change', handleSubjectSelectChange); // Prevent duplicate listeners
             addQuestionSubjectSelect.addEventListener('change', handleSubjectSelectChange);
 
             // Initial state for newSubjectNameInput and existing questions list
-            if (Object.keys(quizDataBySubject).length > 0) {
-                addQuestionSubjectSelect.value = Object.keys(quizDataBySubject)[0];
-                newSubjectNameInput.classList.add('hidden');
+            if (sortedSubjects.length > 0) {
+                addQuestionSubjectSelect.value = sortedSubjects[0]; // Select the first existing subject
+                newSubjectNameGroup.classList.add('hidden');
+                newSubjectNameInput.value = ''; // Clear new subject name
                 newSubjectNameInput.disabled = true;
                 newSubjectNameInput.setAttribute('aria-hidden', 'true');
                 displayQuestionsForSubject(addQuestionSubjectSelect.value); // 最初の科目の問題を表示
             } else {
-                addQuestionSubjectSelect.value = ''; // Select the "新しい科目を追加" option
-                newSubjectNameInput.classList.remove('hidden');
+                addQuestionSubjectSelect.value = ''; // Select the "新しい科目を選択" option
+                newSubjectNameGroup.classList.remove('hidden');
                 newSubjectNameInput.disabled = false;
                 newSubjectNameInput.removeAttribute('aria-hidden');
                 displayQuestionsForSubject(''); // 問題リストをクリア
@@ -1485,16 +1496,16 @@
         function handleSubjectSelectChange() {
             // 科目変更時にフォームをリセットするが、科目選択自体はリセットしない
             const currentSelectedValue = addQuestionSubjectSelect.value; // ユーザーが選択した値を一時的に保持
-            resetAddQuestionForm(true); // 科目選択もリセットするように変更
+            resetAddQuestionForm(false); // フォームをリセット (科目選択はリセットしない)
             addQuestionSubjectSelect.value = currentSelectedValue; // ユーザーが選択した値を再設定
 
-            if (addQuestionSubjectSelect.value === '') { // This means "新しい科目を追加" is selected
-                newSubjectNameInput.classList.remove('hidden');
+            if (addQuestionSubjectSelect.value === '') { // This means "新しい科目を選択" is selected
+                newSubjectNameGroup.classList.remove('hidden');
                 newSubjectNameInput.disabled = false;
                 newSubjectNameInput.removeAttribute('aria-hidden');
                 displayQuestionsForSubject(''); // 新しい科目なので既存問題リストはクリア
             } else {
-                newSubjectNameInput.classList.add('hidden');
+                newSubjectNameGroup.classList.add('hidden');
                 newSubjectNameInput.value = ''; // Clear new subject name if an existing one is selected
                 newSubjectNameInput.disabled = true;
                 newSubjectNameInput.setAttribute('aria-hidden', 'true');
@@ -1554,7 +1565,7 @@
             addQuestionSubjectSelect.value = subject; // 編集中の科目をドロップダウンに設定
 
             // 既存の科目を選択しているので、新しい科目名入力欄は非表示・無効化
-            newSubjectNameInput.classList.add('hidden');
+            newSubjectNameGroup.classList.add('hidden');
             newSubjectNameInput.value = ''; // 念のためクリア
             newSubjectNameInput.disabled = true;
             newSubjectNameInput.setAttribute('aria-hidden', 'true');
@@ -1564,8 +1575,12 @@
         function deleteQuestion(subject, index) {
             if (confirm('この問題を削除してもよろしいですか？')) {
                 quizDataBySubject[subject].splice(index, 1);
+                // もし科目に問題が一つもなくなった場合、その科目をデータから削除する
+                if (quizDataBySubject[subject].length === 0) {
+                    delete quizDataBySubject[subject];
+                }
                 alert('問題を削除しました。');
-                displayQuestionsForSubject(subject); // リストを更新
+                populateAddQuestionSubjectSelect(); // 科目選択ドロップダウンを再描画
                 resetAddQuestionForm(); // フォームをリセット
             }
         }
@@ -1623,7 +1638,7 @@
                 // 削除後に編集中のものがなくなった場合、フォームをリセット
                 if (currentEditingIncorrectChoiceIndex === index) {
                     resetIncorrectChoiceForm();
-                } else if (currentEditingIncorrectChoiceIndex > index) {
+                } else if (currentEditingIncorrectChoiceIndex !== null && currentEditingIncorrectChoiceIndex > index) {
                     // 削除されたインデックスより後ろにあった場合、インデックスを調整
                     currentEditingIncorrectChoiceIndex--;
                 }
@@ -1688,7 +1703,7 @@
 
         // 問題を保存/更新
         saveQuestionButton.addEventListener('click', () => {
-            const selectedSubject = addQuestionSubjectSelect.value;
+            let targetSubject = addQuestionSubjectSelect.value;
             const newSubject = newSubjectNameInput.value.trim();
             const questionText = addQuestionTextInput.value.trim();
             const questionImage = addQuestionImageURLInput.value.trim();
@@ -1696,15 +1711,15 @@
             const correctAnswerImage = addCorrectAnswerImageURLInput.value.trim();
             const incorrectChoices = currentIncorrectChoicesForNewQuestion;
 
-            let targetSubject = selectedSubject;
-            if (selectedSubject === '' && newSubject !== '') { // "新しい科目を追加"が選ばれ、新しい科目名が入力された場合
+            // 新しい科目名が入力された場合の処理
+            if (targetSubject === '' && newSubject !== '') { // "新しい科目を選択"が選ばれ、新しい科目名が入力された場合
                 targetSubject = newSubject;
                 if (quizDataBySubject[targetSubject]) {
                     alert('その新しい科目は既に存在します。');
                     return;
                 }
                 quizDataBySubject[targetSubject] = []; // 新しい科目を初期化
-            } else if (selectedSubject === '' && newSubject === '') { // "新しい科目を追加"が選ばれたが、新しい科目名が入力されていない場合
+            } else if (targetSubject === '' && newSubject === '') { // "新しい科目を選択"が選ばれたが、新しい科目名が入力されていない場合
                 alert('科目を選択するか、新しい科目名を入力してください。');
                 return;
             }
@@ -1726,9 +1741,9 @@
                 // 既存の問題を更新
                 quizDataBySubject[targetSubject][editingQuestionIndex] = newQuestion;
                 alert('問題が更新されました！');
-                // 問題更新時は科目選択をリセットしない
+                // 問題更新時は科目選択をリセットしないが、既存問題リストは更新する
                 resetAddQuestionForm(false);
-                displayQuestionsForSubject(targetSubject); // 現在の科目の問題リストを更新
+                displayQuestionsForSubject(targetSubject);
             } else {
                 // 新しい問題を追加
                 if (!quizDataBySubject[targetSubject]) {
@@ -1736,9 +1751,9 @@
                 }
                 quizDataBySubject[targetSubject].push(newQuestion);
                 alert('問題が保存されました！');
-                // 新規追加時はフォーム全体をリセット
+                // 新規追加時はフォーム全体をリセットし、科目選択リストも再描画
                 resetAddQuestionForm(true);
-                populateAddQuestionSubjectSelect(); // 科目選択リストと問題リストを更新
+                populateAddQuestionSubjectSelect();
             }
         });
 
@@ -1758,29 +1773,15 @@
 
             if (resetSubjectSelect) {
                 // 科目選択ドロップダウンの状態を初期化
-                if (Object.keys(quizDataBySubject).length > 0) {
-                    // 既存の科目がある場合は最初の科目をデフォルトに設定
-                    addQuestionSubjectSelect.value = Object.keys(quizDataBySubject)[0];
-                    newSubjectNameInput.classList.add('hidden');
-                    newSubjectNameInput.disabled = true;
-                    newSubjectNameInput.setAttribute('aria-hidden', 'true');
-                    displayQuestionsForSubject(addQuestionSubjectSelect.value);
-                } else {
-                    // 既存の科目がない場合は「新しい科目を追加」をデフォルトに設定
-                    addQuestionSubjectSelect.value = '';
-                    newSubjectNameInput.classList.remove('hidden');
-                    newSubjectNameInput.disabled = false;
-                    newSubjectNameInput.removeAttribute('aria-hidden');
-                    displayQuestionsForSubject('');
-                }
+                populateAddQuestionSubjectSelect(); // これを呼ぶことで、最新の科目リストと初期選択が設定される
             } else {
                 // 科目選択をリセットしない場合、新しい科目名入力欄の表示/非表示を現在の選択に基づいて調整
                 if (addQuestionSubjectSelect.value === '') {
-                    newSubjectNameInput.classList.remove('hidden');
+                    newSubjectNameGroup.classList.remove('hidden');
                     newSubjectNameInput.disabled = false;
                     newSubjectNameInput.removeAttribute('aria-hidden');
                 } else {
-                    newSubjectNameInput.classList.add('hidden');
+                    newSubjectNameGroup.classList.add('hidden');
                     newSubjectNameInput.value = '';
                     newSubjectNameInput.disabled = true;
                     newSubjectNameInput.setAttribute('aria-hidden', 'true');
